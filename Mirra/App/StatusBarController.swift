@@ -70,7 +70,7 @@ final class StatusBarController {
                 noCamera.isEnabled = false
                 menu.addItem(noCamera)
             } else {
-                let cameraHeader = NSMenuItem(title: "Camera", action: nil, keyEquivalent: "")
+                let cameraHeader = NSMenuItem(title: "Camera  (⇧⌘C)", action: nil, keyEquivalent: "")
                 cameraHeader.isEnabled = false
                 menu.addItem(cameraHeader)
 
@@ -84,8 +84,31 @@ final class StatusBarController {
                 }
             }
 
+            // Display (only when multiple screens) -- inline like cameras
+            let screens = NSScreen.screens
+            if screens.count > 1 {
+                menu.addItem(.separator())
+
+                let displayHeader = NSMenuItem(title: "Display", action: nil, keyEquivalent: "")
+                displayHeader.isEnabled = false
+                menu.addItem(displayHeader)
+
+                for (index, screen) in screens.enumerated() {
+                    let screenNumber = screen.deviceDescription[NSDeviceDescriptionKey("NSScreenNumber")] as? Int
+                    let name = screen.localizedName
+                    let label = index == 0 ? "\(name) (Main)" : name
+                    let item = NSMenuItem(title: label, action: #selector(selectScreen(_:)), keyEquivalent: "")
+                    item.target = self
+                    item.representedObject = screenNumber
+                    item.state = screenNumber == selectedScreenNumber ? .on : .off
+                    item.indentationLevel = 1
+                    menu.addItem(item)
+                }
+            }
+
             // Mirror toggle
-            let mirrorItem = NSMenuItem(title: "Mirror", action: #selector(toggleMirror), keyEquivalent: "")
+            let mirrorItem = NSMenuItem(title: "Mirror", action: #selector(toggleMirror), keyEquivalent: "F")
+            mirrorItem.keyEquivalentModifierMask = [.command, .shift]
             mirrorItem.target = self
             mirrorItem.state = isMirrorEnabled ? .on : .off
             menu.addItem(mirrorItem)
@@ -97,7 +120,7 @@ final class StatusBarController {
             let appearanceMenu = NSMenu()
 
             // Shape
-            let shapeItem = NSMenuItem(title: "Shape", action: nil, keyEquivalent: "")
+            let shapeItem = NSMenuItem(title: "Shape  (⇧⌘H)", action: nil, keyEquivalent: "")
             let shapeMenu = NSMenu()
             for shape in PreviewShape.allCases {
                 let item = NSMenuItem(title: shape.displayName, action: #selector(selectShape(_:)), keyEquivalent: "")
@@ -110,7 +133,7 @@ final class StatusBarController {
             appearanceMenu.addItem(shapeItem)
 
             // Size
-            let sizeItem = NSMenuItem(title: "Size", action: nil, keyEquivalent: "")
+            let sizeItem = NSMenuItem(title: "Size  (⇧⌘S)", action: nil, keyEquivalent: "")
             let sizeMenu = NSMenu()
             for preset in PreviewSizePreset.allCases {
                 let item = NSMenuItem(title: preset.displayName, action: #selector(selectSizePreset(_:)), keyEquivalent: "")
@@ -147,7 +170,7 @@ final class StatusBarController {
             let placementMenu = NSMenu()
 
             // Position
-            let posItem = NSMenuItem(title: "Position", action: nil, keyEquivalent: "")
+            let posItem = NSMenuItem(title: "Position  (⇧⌘P)", action: nil, keyEquivalent: "")
             let posMenu = NSMenu()
             for placement in PreviewPlacement.allCases {
                 let item = NSMenuItem(title: placement.displayName, action: #selector(selectPlacement(_:)), keyEquivalent: "")
@@ -158,27 +181,6 @@ final class StatusBarController {
             }
             posItem.submenu = posMenu
             placementMenu.addItem(posItem)
-
-            // Display (only when multiple screens)
-            let screens = NSScreen.screens
-            if screens.count > 1 {
-                let displayItem = NSMenuItem(title: "Display", action: nil, keyEquivalent: "")
-                let displayMenu = NSMenu()
-
-                for (index, screen) in screens.enumerated() {
-                    let screenNumber = screen.deviceDescription[NSDeviceDescriptionKey("NSScreenNumber")] as? Int
-                    let name = screen.localizedName
-                    let label = index == 0 ? "\(name) (Main)" : name
-                    let item = NSMenuItem(title: label, action: #selector(selectScreen(_:)), keyEquivalent: "")
-                    item.target = self
-                    item.representedObject = screenNumber
-                    item.state = screenNumber == selectedScreenNumber ? .on : .off
-                    displayMenu.addItem(item)
-                }
-
-                displayItem.submenu = displayMenu
-                placementMenu.addItem(displayItem)
-            }
 
             placementItem.submenu = placementMenu
             menu.addItem(placementItem)

@@ -64,8 +64,13 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             }
         }
 
-        // Set up global hotkey (Cmd+Shift+M)
-        hotkeyService.onToggle = { [weak self] in self?.togglePreview() }
+        // Set up global hotkeys
+        hotkeyService.onTogglePreview = { [weak self] in self?.togglePreview() }
+        hotkeyService.onCycleCamera = { [weak self] in self?.cycleCamera() }
+        hotkeyService.onToggleMirror = { [weak self] in self?.setMirror(!(self?.preferences.isMirrorEnabled ?? true)) }
+        hotkeyService.onCycleSize = { [weak self] in self?.cycleSize() }
+        hotkeyService.onCyclePlacement = { [weak self] in self?.cyclePlacement() }
+        hotkeyService.onCycleShape = { [weak self] in self?.cycleShape() }
         hotkeyService.start()
 
         // Observe app activation for permission re-check
@@ -186,6 +191,38 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         LaunchAtLoginService.setEnabled(enabled)
         statusBarController.isLaunchAtLogin = enabled
         statusBarController.updateMenu()
+    }
+
+    // MARK: - Cycle helpers (for keyboard shortcuts)
+
+    private func cycleCamera() {
+        let cameras = cameraService.availableCameras
+        guard cameras.count > 1 else { return }
+        let currentID = cameraService.selectedCameraID ?? cameras.first?.id
+        let currentIndex = cameras.firstIndex(where: { $0.id == currentID }) ?? 0
+        let nextIndex = (currentIndex + 1) % cameras.count
+        selectCamera(cameras[nextIndex].id)
+    }
+
+    private func cycleSize() {
+        let all = PreviewSizePreset.allCases
+        let currentIndex = all.firstIndex(of: preferences.sizePreset) ?? 0
+        let next = all[(currentIndex + 1) % all.count]
+        setSizePreset(next)
+    }
+
+    private func cyclePlacement() {
+        let all = PreviewPlacement.allCases
+        let currentIndex = all.firstIndex(of: preferences.placement) ?? 0
+        let next = all[(currentIndex + 1) % all.count]
+        setPlacement(next)
+    }
+
+    private func cycleShape() {
+        let all = PreviewShape.allCases
+        let currentIndex = all.firstIndex(of: preferences.shape) ?? 0
+        let next = all[(currentIndex + 1) % all.count]
+        setShape(next)
     }
 
     // MARK: - Camera state

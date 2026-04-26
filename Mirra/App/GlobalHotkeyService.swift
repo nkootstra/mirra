@@ -5,23 +5,25 @@ import Carbon.HIToolbox
 final class GlobalHotkeyService {
     private var localMonitor: Any?
     private var globalMonitor: Any?
-    var onToggle: (() -> Void)?
+
+    // Callbacks for each hotkey
+    var onTogglePreview: (() -> Void)?    // Cmd+Shift+M
+    var onCycleCamera: (() -> Void)?      // Cmd+Shift+C
+    var onToggleMirror: (() -> Void)?     // Cmd+Shift+F
+    var onCycleSize: (() -> Void)?        // Cmd+Shift+S
+    var onCyclePlacement: (() -> Void)?   // Cmd+Shift+P
+    var onCycleShape: (() -> Void)?       // Cmd+Shift+H
 
     func start() {
-        // Monitor when app is active
         localMonitor = NSEvent.addLocalMonitorForEvents(matching: .keyDown) { [weak self] event in
-            if self?.matchesHotkey(event) == true {
-                self?.onToggle?()
+            if self?.handleEvent(event) == true {
                 return nil
             }
             return event
         }
 
-        // Monitor when app is in background
         globalMonitor = NSEvent.addGlobalMonitorForEvents(matching: .keyDown) { [weak self] event in
-            if self?.matchesHotkey(event) == true {
-                self?.onToggle?()
-            }
+            self?.handleEvent(event)
         }
     }
 
@@ -36,13 +38,37 @@ final class GlobalHotkeyService {
         }
     }
 
-    /// Cmd+Shift+M
-    private func matchesHotkey(_ event: NSEvent) -> Bool {
+    @discardableResult
+    private func handleEvent(_ event: NSEvent) -> Bool {
         let flags = event.modifierFlags.intersection(.deviceIndependentFlagsMask)
-        return event.keyCode == UInt16(kVK_ANSI_M)
-            && flags.contains(.command)
-            && flags.contains(.shift)
-            && !flags.contains(.option)
-            && !flags.contains(.control)
+        guard flags.contains(.command),
+              flags.contains(.shift),
+              !flags.contains(.option),
+              !flags.contains(.control) else {
+            return false
+        }
+
+        switch event.keyCode {
+        case UInt16(kVK_ANSI_M):
+            onTogglePreview?()
+            return true
+        case UInt16(kVK_ANSI_C):
+            onCycleCamera?()
+            return true
+        case UInt16(kVK_ANSI_F):
+            onToggleMirror?()
+            return true
+        case UInt16(kVK_ANSI_S):
+            onCycleSize?()
+            return true
+        case UInt16(kVK_ANSI_P):
+            onCyclePlacement?()
+            return true
+        case UInt16(kVK_ANSI_H):
+            onCycleShape?()
+            return true
+        default:
+            return false
+        }
     }
 }
