@@ -1,23 +1,23 @@
 import Foundation
 
 enum PreviewShape: String, CaseIterable {
-    case roundedRectangle
     case circle
+    case square
     case rectangle
 
     var displayName: String {
         switch self {
-        case .roundedRectangle: "Rounded"
         case .circle: "Circle"
+        case .square: "Square"
         case .rectangle: "Rectangle"
         }
     }
 
-    var cornerRadius: CGFloat {
+    /// Whether this shape forces equal width and height.
+    var isSquare: Bool {
         switch self {
-        case .roundedRectangle: 10
-        case .circle: .infinity  // will be clamped to half the shortest side
-        case .rectangle: 0
+        case .circle, .square: true
+        case .rectangle: false
         }
     }
 }

@@ -12,7 +12,7 @@ final class StatusBarController {
     var availableCameras: [CameraDevice] = []
     var selectedPlacement: PreviewPlacement = .bottomTrailing
     var selectedSizePreset: PreviewSizePreset = .medium
-    var selectedShape: PreviewShape = .roundedRectangle
+    var selectedShape: PreviewShape = .rectangle
     var selectedScreenNumber: Int?  // nil = main screen
     var isLaunchAtLogin: Bool = false
     var cameraState: CameraState = .idle

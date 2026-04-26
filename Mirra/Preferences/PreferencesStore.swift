@@ -69,7 +69,7 @@ final class PreferencesStore {
         self.quality = CameraQuality(rawValue: defaults.string(forKey: Keys.quality) ?? "") ?? .medium
         self.placement = PreviewPlacement(rawValue: defaults.string(forKey: Keys.placement) ?? "") ?? .bottomTrailing
         self.sizePreset = PreviewSizePreset(rawValue: defaults.string(forKey: Keys.sizePreset) ?? "") ?? .medium
-        self.shape = PreviewShape(rawValue: defaults.string(forKey: Keys.shape) ?? "") ?? .roundedRectangle
+        self.shape = PreviewShape(rawValue: defaults.string(forKey: Keys.shape) ?? "") ?? .rectangle
         self.launchAtLogin = defaults.bool(forKey: Keys.launchAtLogin)
         self.screenNumber = defaults.object(forKey: Keys.screenNumber) as? Int
     }

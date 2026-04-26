@@ -6,13 +6,27 @@ import SwiftUI
 final class PreviewWindowController {
     private var panel: NSPanel?
     private var hostingView: NSHostingView<AnyView>?
+    private var hoverTracker: HoverTrackingView?
+
+    private static let hoverOpacity: CGFloat = 0.3
+    private static let normalOpacity: CGFloat = 1.0
 
     var sizePreset: PreviewSizePreset = .medium
     var placement: PreviewPlacement = .bottomTrailing
-    var shape: PreviewShape = .roundedRectangle
+    var shape: PreviewShape = .rectangle
     var targetScreenNumber: Int?  // nil = main screen
 
     var isVisible: Bool { panel?.isVisible ?? false }
+
+    /// The effective window size, accounting for shape (circle forces square).
+    private var effectiveSize: NSSize {
+        let base = sizePreset.size
+        if shape.isSquare {
+            let side = min(base.width, base.height)
+            return NSSize(width: side, height: side)
+        }
+        return base
+    }
 
     /// The screen to place the preview on.
     private var targetScreen: NSScreen {
@@ -34,10 +48,11 @@ final class PreviewWindowController {
             applyCornerRadius(to: hosting)
             self.hostingView = hosting
             panel.orderFront(nil)
+            installHoverTracking()
             return
         }
 
-        let size = sizePreset.size
+        let size = effectiveSize
         let screenFrame = targetScreen.visibleFrame
         let origin = placement.origin(for: size, in: screenFrame)
         let frame = NSRect(origin: origin, size: size)
@@ -67,9 +82,11 @@ final class PreviewWindowController {
 
         updateContent(session: session, isMirrored: isMirrored)
         panel.orderFront(nil)
+        installHoverTracking()
     }
 
     func hide() {
+        panel?.alphaValue = Self.normalOpacity
         panel?.orderOut(nil)
     }
 
@@ -86,7 +103,7 @@ final class PreviewWindowController {
     func updateSize(_ preset: PreviewSizePreset) {
         sizePreset = preset
         guard let panel else { return }
-        let newSize = preset.size
+        let newSize = effectiveSize
         let screenFrame = targetScreen.visibleFrame
         let origin = placement.origin(for: newSize, in: screenFrame)
         let frame = NSRect(origin: origin, size: newSize)
@@ -135,9 +152,9 @@ final class PreviewWindowController {
         view.wantsLayer = true
         let maxRadius = min(view.bounds.width, view.bounds.height) / 2
         let radius: CGFloat = switch shape {
-        case .roundedRectangle: 10
         case .circle: maxRadius
-        case .rectangle: 0
+        case .square: 10
+        case .rectangle: 10
         }
         view.layer?.cornerRadius = radius
         view.layer?.masksToBounds = true
@@ -145,8 +162,13 @@ final class PreviewWindowController {
 
     func updateShape(_ newShape: PreviewShape) {
         shape = newShape
-        guard let panel, let hosting = panel.contentView else { return }
-        applyCornerRadius(to: hosting)
+        guard let panel else { return }
+        let newSize = effectiveSize
+        let screenFrame = targetScreen.visibleFrame
+        let origin = placement.origin(for: newSize, in: screenFrame)
+        let frame = NSRect(origin: origin, size: newSize)
+        panel.setFrame(frame, display: true, animate: true)
+        if let hosting = panel.contentView { applyCornerRadius(to: hosting) }
     }
 
     @objc private func windowDidMove(_ notification: Notification) {
@@ -165,5 +187,60 @@ final class PreviewWindowController {
         if frame != panel.frame {
             panel.setFrameOrigin(frame.origin)
         }
+    }
+
+    private func installHoverTracking() {
+        guard let panel, let contentView = panel.contentView else { return }
+        hoverTracker?.removeFromSuperview()
+        let tracker = HoverTrackingView(frame: contentView.bounds)
+        tracker.autoresizingMask = [.width, .height]
+        tracker.onMouseEntered = { [weak self] in
+            self?.animateOpacity(to: Self.hoverOpacity)
+        }
+        tracker.onMouseExited = { [weak self] in
+            self?.animateOpacity(to: Self.normalOpacity)
+        }
+        contentView.addSubview(tracker)
+        hoverTracker = tracker
+    }
+
+    private func animateOpacity(to alpha: CGFloat) {
+        guard let panel else { return }
+        NSAnimationContext.runAnimationGroup { ctx in
+            ctx.duration = 0.2
+            panel.animator().alphaValue = alpha
+        }
+    }
+}
+
+// MARK: - Hover Tracking View
+
+private class HoverTrackingView: NSView {
+    var onMouseEntered: (() -> Void)?
+    var onMouseExited: (() -> Void)?
+
+    private var trackingArea: NSTrackingArea?
+
+    override func updateTrackingAreas() {
+        super.updateTrackingAreas()
+        if let existing = trackingArea {
+            removeTrackingArea(existing)
+        }
+        let area = NSTrackingArea(
+            rect: bounds,
+            options: [.mouseEnteredAndExited, .activeAlways],
+            owner: self,
+            userInfo: nil
+        )
+        addTrackingArea(area)
+        trackingArea = area
+    }
+
+    override func mouseEntered(with event: NSEvent) {
+        onMouseEntered?()
+    }
+
+    override func mouseExited(with event: NSEvent) {
+        onMouseExited?()
     }
 }
