@@ -1,0 +1,58 @@
+import Foundation
+import Observation
+
+@Observable
+@MainActor
+final class PreferencesStore {
+    private let defaults = UserDefaults.standard
+
+    private enum Keys {
+        static let selectedCameraID = "selectedCameraID"
+        static let isPreviewEnabled = "isPreviewEnabled"
+        static let isMirrorEnabled = "isMirrorEnabled"
+        static let quality = "quality"
+        static let placement = "placement"
+        static let sizePreset = "sizePreset"
+        static let launchAtLogin = "launchAtLogin"
+    }
+
+    var selectedCameraID: String? {
+        didSet { defaults.set(selectedCameraID, forKey: Keys.selectedCameraID) }
+    }
+
+    var isPreviewEnabled: Bool {
+        didSet { defaults.set(isPreviewEnabled, forKey: Keys.isPreviewEnabled) }
+    }
+
+    var isMirrorEnabled: Bool {
+        didSet { defaults.set(isMirrorEnabled, forKey: Keys.isMirrorEnabled) }
+    }
+
+    var quality: CameraQuality {
+        didSet { defaults.set(quality.rawValue, forKey: Keys.quality) }
+    }
+
+    var placement: PreviewPlacement {
+        didSet { defaults.set(placement.rawValue, forKey: Keys.placement) }
+    }
+
+    var sizePreset: PreviewSizePreset {
+        didSet { defaults.set(sizePreset.rawValue, forKey: Keys.sizePreset) }
+    }
+
+    var launchAtLogin: Bool {
+        didSet { defaults.set(launchAtLogin, forKey: Keys.launchAtLogin) }
+    }
+
+    init() {
+        self.selectedCameraID = defaults.string(forKey: Keys.selectedCameraID)
+        self.isPreviewEnabled = defaults.bool(forKey: Keys.isPreviewEnabled)
+        self.isMirrorEnabled = defaults.object(forKey: Keys.isMirrorEnabled) == nil
+            ? true  // default to mirrored
+            : defaults.bool(forKey: Keys.isMirrorEnabled)
+        self.quality = CameraQuality(rawValue: defaults.string(forKey: Keys.quality) ?? "") ?? .medium
+        self.placement = PreviewPlacement(rawValue: defaults.string(forKey: Keys.placement) ?? "") ?? .bottomTrailing
+        self.sizePreset = PreviewSizePreset(rawValue: defaults.string(forKey: Keys.sizePreset) ?? "") ?? .medium
+        self.launchAtLogin = defaults.bool(forKey: Keys.launchAtLogin)
+    }
+}
