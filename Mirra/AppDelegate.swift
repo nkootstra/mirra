@@ -1,4 +1,5 @@
 import AppKit
+import AVFoundation
 import Observation
 
 @MainActor
@@ -114,7 +115,6 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         if cameraService.state == .previewing {
             cameraService.stopPreview()
             previewWindowController.hide()
-            statusBarController.previewSession = nil
             preferences.isPreviewEnabled = false
             syncStatusBar()
         } else if cameraService.state == .unauthorized {
@@ -251,14 +251,11 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         case .previewing:
             if let session = cameraService.previewSession {
                 previewWindowController.show(session: session, isMirrored: preferences.isMirrorEnabled)
-                statusBarController.previewSession = session
             }
             statusBarController.updateIcon(previewActive: true)
         case .noCameraAvailable, .cameraInUse, .cameraSuspended, .disconnected:
-            statusBarController.previewSession = nil
             statusBarController.updateIcon(previewActive: false)
         case .unauthorized:
-            statusBarController.previewSession = nil
             statusBarController.updateIcon(previewActive: false)
             previewWindowController.hide()
         case .ready, .idle:
