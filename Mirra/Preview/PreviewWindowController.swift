@@ -16,6 +16,8 @@ final class PreviewWindowController {
     var hoverMode: HoverMode = .fade
     var hoverOpacity: HoverOpacity = .thirty
     var targetScreenNumber: Int?  // nil = main screen
+    var onWindowPositionChanged: ((CGPoint) -> Void)?
+    var savedWindowPosition: CGPoint?  // set from preferences on launch
 
     var isVisible: Bool { panel?.isVisible ?? false }
 
@@ -55,7 +57,12 @@ final class PreviewWindowController {
 
         let size = effectiveSize
         let screenFrame = targetScreen.visibleFrame
-        let origin = placement.origin(for: size, in: screenFrame)
+        let origin: NSPoint
+        if let saved = savedWindowPosition {
+            origin = saved
+        } else {
+            origin = placement.origin(for: size, in: screenFrame)
+        }
         let frame = NSRect(origin: origin, size: size)
 
         let panel = NSPanel(
@@ -117,6 +124,7 @@ final class PreviewWindowController {
 
     func updatePlacement(_ newPlacement: PreviewPlacement) {
         placement = newPlacement
+        savedWindowPosition = nil
         guard let panel else { return }
         let screenFrame = targetScreen.visibleFrame
         let origin = newPlacement.origin(for: panel.frame.size, in: screenFrame)
@@ -183,6 +191,9 @@ final class PreviewWindowController {
 
     @objc private func windowDidMove(_ notification: Notification) {
         constrainToScreen()
+        if let panel {
+            onWindowPositionChanged?(panel.frame.origin)
+        }
     }
 
     private func constrainToScreen() {

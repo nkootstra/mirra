@@ -4,7 +4,7 @@ import Observation
 @Observable
 @MainActor
 final class PreferencesStore {
-    private let defaults = UserDefaults.standard
+    private let defaults: UserDefaults
 
     private enum Keys {
         static let selectedCameraID = "selectedCameraID"
@@ -18,6 +18,8 @@ final class PreferencesStore {
         static let screenNumber = "screenNumber"
         static let hoverMode = "hoverMode"
         static let hoverOpacity = "hoverOpacity"
+        static let windowPositionX = "windowPositionX"
+        static let windowPositionY = "windowPositionY"
     }
 
     var selectedCameraID: String? {
@@ -33,7 +35,11 @@ final class PreferencesStore {
     }
 
     var placement: PreviewPlacement {
-        didSet { defaults.set(placement.rawValue, forKey: Keys.placement) }
+        didSet {
+            defaults.set(placement.rawValue, forKey: Keys.placement)
+            // Selecting a placement clears saved drag position
+            windowPosition = nil
+        }
     }
 
     var sizePreset: PreviewSizePreset {
@@ -70,11 +76,24 @@ final class PreferencesStore {
         didSet { defaults.set(hoverOpacity.rawValue, forKey: Keys.hoverOpacity) }
     }
 
-    init() {
+    var windowPosition: CGPoint? {
+        didSet {
+            if let windowPosition {
+                defaults.set(Double(windowPosition.x), forKey: Keys.windowPositionX)
+                defaults.set(Double(windowPosition.y), forKey: Keys.windowPositionY)
+            } else {
+                defaults.removeObject(forKey: Keys.windowPositionX)
+                defaults.removeObject(forKey: Keys.windowPositionY)
+            }
+        }
+    }
+
+    init(defaults: UserDefaults = .standard) {
+        self.defaults = defaults
         self.selectedCameraID = defaults.string(forKey: Keys.selectedCameraID)
         self.isPreviewEnabled = defaults.bool(forKey: Keys.isPreviewEnabled)
         self.isMirrorEnabled = defaults.object(forKey: Keys.isMirrorEnabled) == nil
-            ? true  // default to mirrored
+            ? true
             : defaults.bool(forKey: Keys.isMirrorEnabled)
         self.placement = PreviewPlacement(rawValue: defaults.string(forKey: Keys.placement) ?? "") ?? .bottomTrailing
         self.sizePreset = PreviewSizePreset(rawValue: defaults.string(forKey: Keys.sizePreset) ?? "") ?? .medium
@@ -84,5 +103,13 @@ final class PreferencesStore {
         self.screenNumber = defaults.object(forKey: Keys.screenNumber) as? Int
         self.hoverMode = HoverMode(rawValue: defaults.string(forKey: Keys.hoverMode) ?? "") ?? .fade
         self.hoverOpacity = HoverOpacity(rawValue: defaults.string(forKey: Keys.hoverOpacity) ?? "") ?? .thirty
+
+        if defaults.object(forKey: Keys.windowPositionX) != nil {
+            let x = defaults.double(forKey: Keys.windowPositionX)
+            let y = defaults.double(forKey: Keys.windowPositionY)
+            self.windowPosition = CGPoint(x: x, y: y)
+        } else {
+            self.windowPosition = nil
+        }
     }
 }
