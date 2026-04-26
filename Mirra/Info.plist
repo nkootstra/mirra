@@ -6,5 +6,7 @@
     <true/>
     <key>NSCameraUsageDescription</key>
     <string>Mirra needs camera access to show a live preview of your camera feed.</string>
+    <key>NSMicrophoneUsageDescription</key>
+    <string>Mirra uses microphone access to show audio levels so you can verify your mic is working.</string>
 </dict>
 </plist>

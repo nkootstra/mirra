@@ -1,6 +1,7 @@
 import AppKit
 import AVFoundation
 import Observation
+import SwiftUI
 
 @MainActor
 class AppDelegate: NSObject, NSApplicationDelegate {
@@ -10,6 +11,10 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     private let previewWindowController = PreviewWindowController()
 
     private let hotkeyService = GlobalHotkeyService()
+    private let notchTriggerService = NotchTriggerService()
+    private let micMonitor = MicLevelMonitor()
+    private var notchPanel: NSPanel?
+    private var isNotchPreviewActive = false
     private var wasPreviewingBeforeSleep = false
 
     func applicationDidFinishLaunching(_ notification: Notification) {
@@ -79,6 +84,11 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         hotkeyService.onCyclePlacement = { [weak self] in self?.cyclePlacement() }
         hotkeyService.onCycleShape = { [weak self] in self?.cycleShape() }
         hotkeyService.start()
+
+        // Set up notch trigger (no-ops on non-notch Macs)
+        notchTriggerService.onNotchEntered = { [weak self] in self?.showNotchPreview() }
+        notchTriggerService.onNotchExited = { [weak self] in self?.hideNotchPreview() }
+        notchTriggerService.start()
 
         // Observe app activation for permission re-check
         NotificationCenter.default.addObserver(
@@ -209,6 +219,85 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         statusBarController.updateMenu()
     }
 
+    // MARK: - Notch preview
+
+    private func showNotchPreview() {
+        guard notchPanel == nil else { return }
+
+        isNotchPreviewActive = true
+
+        // Start camera if not already running
+        var session = cameraService.previewSession
+        if session == nil {
+            cameraService.startPreview()
+            session = cameraService.previewSession
+        }
+        guard let session else { return }
+
+        // Start mic monitoring
+        micMonitor.start()
+
+        guard let builtInScreen = NSScreen.screens.first(where: { $0.auxiliaryTopLeftArea != nil }),
+              let leftArea = builtInScreen.auxiliaryTopLeftArea,
+              let rightArea = builtInScreen.auxiliaryTopRightArea else { return }
+
+        let frame = builtInScreen.frame
+        let notchCenterX = frame.origin.x + (leftArea.maxX + rightArea.minX) / 2
+        let menuBarBottom = builtInScreen.visibleFrame.maxY
+
+        let arrowHeight = NotchPreviewView.arrowHeight
+        let previewWidth: CGFloat = 360
+        let previewHeight: CGFloat = 270
+        let totalHeight = previewHeight + arrowHeight
+
+        let panelRect = NSRect(
+            x: notchCenterX - previewWidth / 2,
+            y: menuBarBottom - totalHeight,
+            width: previewWidth,
+            height: totalHeight
+        )
+
+        let view = NotchPreviewView(
+            session: session,
+            isMirrored: preferences.isMirrorEnabled,
+            micMonitor: micMonitor
+        )
+
+        let panel = NSPanel(
+            contentRect: panelRect,
+            styleMask: [.nonactivatingPanel, .borderless],
+            backing: .buffered,
+            defer: false
+        )
+        panel.isOpaque = false
+        panel.backgroundColor = .clear
+        panel.level = .statusBar + 1
+        panel.hasShadow = true
+        panel.ignoresMouseEvents = true
+        panel.collectionBehavior = [.canJoinAllSpaces, .fullScreenAuxiliary]
+
+        let hostingView = NSHostingView(rootView:
+            view.frame(width: previewWidth, height: totalHeight)
+        )
+        hostingView.frame = NSRect(x: 0, y: 0, width: previewWidth, height: totalHeight)
+        panel.contentView = hostingView
+        panel.orderFrontRegardless()
+
+        notchPanel = panel
+    }
+
+    private func hideNotchPreview() {
+        notchPanel?.orderOut(nil)
+        notchPanel = nil
+        micMonitor.stop()
+        isNotchPreviewActive = false
+
+        // If the main preview wasn't enabled, stop the camera
+        if !preferences.isPreviewEnabled {
+            cameraService.stopPreview()
+        }
+    }
+
     // MARK: - Cycle helpers (for keyboard shortcuts)
 
     private func cycleCamera() {
@@ -249,10 +338,10 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         let state = cameraService.state
         switch state {
         case .previewing:
-            if let session = cameraService.previewSession {
+            if let session = cameraService.previewSession, !isNotchPreviewActive {
                 previewWindowController.show(session: session, isMirrored: preferences.isMirrorEnabled)
             }
-            statusBarController.updateIcon(previewActive: true)
+            statusBarController.updateIcon(previewActive: !isNotchPreviewActive)
         case .noCameraAvailable, .cameraInUse, .cameraSuspended, .disconnected:
             statusBarController.updateIcon(previewActive: false)
         case .unauthorized:

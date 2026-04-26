@@ -14,6 +14,8 @@
 		A1000005 /* CameraDevice.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000021 /* CameraDevice.swift */; };
 		A1000006 /* StatusBarController.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000022 /* StatusBarController.swift */; };
 		A1000021 /* GlobalHotkeyService.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000050 /* GlobalHotkeyService.swift */; };
+		73A6655235CB4C7CB4E6F268 /* MicLevelMonitor.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC9A006238244FD687BF920A /* MicLevelMonitor.swift */; };
+		80C680BDF8FF4294B4FCF58D /* NotchTriggerService.swift in Sources */ = {isa = PBXBuildFile; fileRef = AEAA67AD78B242818E431DE6 /* NotchTriggerService.swift */; };
 		A1000022 /* PreviewShape.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000051 /* PreviewShape.swift */; };
 		A1000023 /* HoverMode.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000052 /* HoverMode.swift */; };
 		A1000024 /* BorderRadius.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000053 /* BorderRadius.swift */; };
@@ -24,6 +26,7 @@
 		A1000012 /* PreviewPlacement.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000030 /* PreviewPlacement.swift */; };
 		A1000013 /* PreviewSizePreset.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000031 /* PreviewSizePreset.swift */; };
 		A1000014 /* CameraPreviewView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000032 /* CameraPreviewView.swift */; };
+		33415F780EEE44B0B83EFD2E /* NotchPreviewView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 51C46F9EE3454F81B2DD3B60 /* NotchPreviewView.swift */; };
 		A1000015 /* PreviewWindowController.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000033 /* PreviewWindowController.swift */; };
 		A1000017 /* PermissionRecoveryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000040 /* PermissionRecoveryView.swift */; };
 		A1000018 /* FailureStateView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000041 /* FailureStateView.swift */; };
@@ -57,6 +60,8 @@
 		A2000021 /* CameraDevice.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CameraDevice.swift; sourceTree = "<group>"; };
 		A2000022 /* StatusBarController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StatusBarController.swift; sourceTree = "<group>"; };
 		A2000050 /* GlobalHotkeyService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GlobalHotkeyService.swift; sourceTree = "<group>"; };
+		EC9A006238244FD687BF920A /* MicLevelMonitor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MicLevelMonitor.swift; sourceTree = "<group>"; };
+		AEAA67AD78B242818E431DE6 /* NotchTriggerService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotchTriggerService.swift; sourceTree = "<group>"; };
 		A2000051 /* PreviewShape.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PreviewShape.swift; sourceTree = "<group>"; };
 		A2000052 /* HoverMode.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HoverMode.swift; sourceTree = "<group>"; };
 		A2000053 /* BorderRadius.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BorderRadius.swift; sourceTree = "<group>"; };
@@ -69,6 +74,7 @@
 		A2000030 /* PreviewPlacement.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PreviewPlacement.swift; sourceTree = "<group>"; };
 		A2000031 /* PreviewSizePreset.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PreviewSizePreset.swift; sourceTree = "<group>"; };
 		A2000032 /* CameraPreviewView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CameraPreviewView.swift; sourceTree = "<group>"; };
+		51C46F9EE3454F81B2DD3B60 /* NotchPreviewView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotchPreviewView.swift; sourceTree = "<group>"; };
 		A2000033 /* PreviewWindowController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PreviewWindowController.swift; sourceTree = "<group>"; };
 		A2000040 /* PermissionRecoveryView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PermissionRecoveryView.swift; sourceTree = "<group>"; };
 		A2000041 /* FailureStateView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FailureStateView.swift; sourceTree = "<group>"; };
@@ -152,6 +158,8 @@
 			children = (
 				A2000022 /* StatusBarController.swift */,
 				A2000050 /* GlobalHotkeyService.swift */,
+				EC9A006238244FD687BF920A /* MicLevelMonitor.swift */,
+				AEAA67AD78B242818E431DE6 /* NotchTriggerService.swift */,
 			);
 			path = App;
 			sourceTree = "<group>";
@@ -173,6 +181,7 @@
 				A2000023 /* StatusMenuView.swift */,
 				A2000040 /* PermissionRecoveryView.swift */,
 				A2000041 /* FailureStateView.swift */,
+				51C46F9EE3454F81B2DD3B60 /* NotchPreviewView.swift */,
 			);
 			path = UI;
 			sourceTree = "<group>";
@@ -298,6 +307,8 @@
 				A1000005 /* CameraDevice.swift in Sources */,
 				A1000006 /* StatusBarController.swift in Sources */,
 				A1000021 /* GlobalHotkeyService.swift in Sources */,
+				73A6655235CB4C7CB4E6F268 /* MicLevelMonitor.swift in Sources */,
+				80C680BDF8FF4294B4FCF58D /* NotchTriggerService.swift in Sources */,
 				A1000007 /* StatusMenuView.swift in Sources */,
 				A1000008 /* CameraState.swift in Sources */,
 				A1000009 /* CameraService.swift in Sources */,
@@ -308,6 +319,7 @@
 				A1000024 /* BorderRadius.swift in Sources */,
 				A1000025 /* ClickThroughMode.swift in Sources */,
 				A1000014 /* CameraPreviewView.swift in Sources */,
+				33415F780EEE44B0B83EFD2E /* NotchPreviewView.swift in Sources */,
 				A1000015 /* PreviewWindowController.swift in Sources */,
 				A1000017 /* PermissionRecoveryView.swift in Sources */,
 				A1000018 /* FailureStateView.swift in Sources */,
@@ -416,7 +428,7 @@
 					"$(inherited)",
 					"@executable_path/../Frameworks",
 				);
-				MARKETING_VERSION = 0.1.0;
+				MARKETING_VERSION = 0.2.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.mirra.app;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = YES;
@@ -440,7 +452,7 @@
 					"$(inherited)",
 					"@executable_path/../Frameworks",
 				);
-				MARKETING_VERSION = 0.1.0;
+				MARKETING_VERSION = 0.2.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.mirra.app;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = YES;
@@ -455,7 +467,7 @@
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				GENERATE_INFOPLIST_FILE = YES;
-				MARKETING_VERSION = 0.1.0;
+				MARKETING_VERSION = 0.2.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.mirra.app.tests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = NO;
@@ -471,7 +483,7 @@
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				GENERATE_INFOPLIST_FILE = YES;
-				MARKETING_VERSION = 0.1.0;
+				MARKETING_VERSION = 0.2.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.mirra.app.tests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = NO;
