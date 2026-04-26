@@ -12,7 +12,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
 
     private let hotkeyService = GlobalHotkeyService()
     private let notchTriggerService = NotchTriggerService()
-    private let micMonitor = MicLevelMonitor()
+    private let micCheck = MicCheckService()
     private var notchPanel: NSPanel?
     private var isNotchPreviewActive = false
     private var wasPreviewingBeforeSleep = false
@@ -235,7 +235,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         guard let session else { return }
 
         // Start mic monitoring
-        micMonitor.start()
+        micCheck.check()
 
         guard let builtInScreen = NSScreen.screens.first(where: { $0.auxiliaryTopLeftArea != nil }),
               let leftArea = builtInScreen.auxiliaryTopLeftArea,
@@ -260,7 +260,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         let view = NotchPreviewView(
             session: session,
             isMirrored: preferences.isMirrorEnabled,
-            micMonitor: micMonitor
+            micCheck: micCheck
         )
 
         let panel = NSPanel(
@@ -289,7 +289,6 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     private func hideNotchPreview() {
         notchPanel?.orderOut(nil)
         notchPanel = nil
-        micMonitor.stop()
         isNotchPreviewActive = false
 
         // If the main preview wasn't enabled, stop the camera
