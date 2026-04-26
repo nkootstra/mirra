@@ -4,22 +4,14 @@ import SwiftUI
 @MainActor
 final class StatusBarController {
     private var statusItem: NSStatusItem?
+    private let preferences: PreferencesStore
 
+    // State from CameraService (not preferences)
     var isPreviewEnabled: Bool = false
-    var isMirrorEnabled: Bool = true
-    var selectedCameraID: String?
     var availableCameras: [CameraDevice] = []
-    var selectedPlacement: PreviewPlacement = .bottomTrailing
-    var selectedSizePreset: PreviewSizePreset = .medium
-    var selectedShape: PreviewShape = .rectangle
-    var selectedBorderRadius: BorderRadius = .medium
-    var selectedHoverMode: HoverMode = .fade
-    var selectedHoverOpacity: HoverOpacity = .thirty
-    var selectedScreenNumber: Int?  // nil = main screen
-    var isLaunchAtLogin: Bool = false
-    var selectedClickThroughMode: ClickThroughMode = .normal
     var cameraState: CameraState = .idle
 
+    // Callbacks
     var onTogglePreview: (() -> Void)?
     var onSelectCamera: ((String) -> Void)?
     var onToggleMirror: ((Bool) -> Void)?
@@ -32,6 +24,10 @@ final class StatusBarController {
     var onSelectScreen: ((Int?) -> Void)?
     var onToggleLaunchAtLogin: ((Bool) -> Void)?
     var onSelectClickThroughMode: ((ClickThroughMode) -> Void)?
+
+    init(preferences: PreferencesStore) {
+        self.preferences = preferences
+    }
 
     func setup() {
         statusItem = NSStatusBar.system.statusItem(withLength: NSStatusItem.variableLength)
@@ -80,7 +76,7 @@ final class StatusBarController {
                     let item = NSMenuItem(title: camera.name, action: #selector(selectCamera(_:)), keyEquivalent: "")
                     item.target = self
                     item.representedObject = camera.id
-                    item.state = camera.id == selectedCameraID ? .on : .off
+                    item.state = camera.id == preferences.selectedCameraID ? .on : .off
                     item.indentationLevel = 1
                     menu.addItem(item)
                 }
@@ -102,7 +98,7 @@ final class StatusBarController {
                     let item = NSMenuItem(title: label, action: #selector(selectScreen(_:)), keyEquivalent: "")
                     item.target = self
                     item.representedObject = screenNumber
-                    item.state = screenNumber == selectedScreenNumber ? .on : .off
+                    item.state = screenNumber == preferences.screenNumber ? .on : .off
                     item.indentationLevel = 1
                     menu.addItem(item)
                 }
@@ -112,7 +108,7 @@ final class StatusBarController {
             let mirrorItem = NSMenuItem(title: "Mirror", action: #selector(toggleMirror), keyEquivalent: "F")
             mirrorItem.keyEquivalentModifierMask = [.command, .shift]
             mirrorItem.target = self
-            mirrorItem.state = isMirrorEnabled ? .on : .off
+            mirrorItem.state = preferences.isMirrorEnabled ? .on : .off
             menu.addItem(mirrorItem)
 
             menu.addItem(.separator())
@@ -128,7 +124,7 @@ final class StatusBarController {
                 let item = NSMenuItem(title: shape.displayName, action: #selector(selectShape(_:)), keyEquivalent: "")
                 item.target = self
                 item.representedObject = shape.rawValue
-                item.state = shape == selectedShape ? .on : .off
+                item.state = shape == preferences.shape ? .on : .off
                 shapeMenu.addItem(item)
             }
             shapeItem.submenu = shapeMenu
@@ -141,7 +137,7 @@ final class StatusBarController {
                 let item = NSMenuItem(title: preset.displayName, action: #selector(selectSizePreset(_:)), keyEquivalent: "")
                 item.target = self
                 item.representedObject = preset.rawValue
-                item.state = preset == selectedSizePreset ? .on : .off
+                item.state = preset == preferences.sizePreset ? .on : .off
                 sizeMenu.addItem(item)
             }
             sizeItem.submenu = sizeMenu
@@ -149,7 +145,7 @@ final class StatusBarController {
 
             // Border radius (disabled for circle)
             let radiusItem = NSMenuItem(title: "Border Radius", action: nil, keyEquivalent: "")
-            if selectedShape == .circle {
+            if preferences.shape == .circle {
                 radiusItem.isEnabled = false
             } else {
                 let radiusMenu = NSMenu()
@@ -157,7 +153,7 @@ final class StatusBarController {
                     let item = NSMenuItem(title: radius.displayName, action: #selector(selectBorderRadius(_:)), keyEquivalent: "")
                     item.target = self
                     item.representedObject = radius.rawValue
-                    item.state = radius == selectedBorderRadius ? .on : .off
+                    item.state = radius == preferences.borderRadius ? .on : .off
                     radiusMenu.addItem(item)
                 }
                 radiusItem.submenu = radiusMenu
@@ -178,7 +174,7 @@ final class StatusBarController {
                 let item = NSMenuItem(title: placement.displayName, action: #selector(selectPlacement(_:)), keyEquivalent: "")
                 item.target = self
                 item.representedObject = placement.rawValue
-                item.state = placement == selectedPlacement ? .on : .off
+                item.state = placement == preferences.placement ? .on : .off
                 posMenu.addItem(item)
             }
             posItem.submenu = posMenu
@@ -198,10 +194,10 @@ final class StatusBarController {
                 let item = NSMenuItem(title: mode.displayName, action: #selector(selectHoverMode(_:)), keyEquivalent: "")
                 item.target = self
                 item.representedObject = mode.rawValue
-                item.state = mode == selectedHoverMode ? .on : .off
+                item.state = mode == preferences.hoverMode ? .on : .off
                 hoverMenu.addItem(item)
             }
-            if selectedHoverMode == .fade {
+            if preferences.hoverMode == .fade {
                 hoverMenu.addItem(.separator())
                 let opacityHeader = NSMenuItem(title: "Fade To", action: nil, keyEquivalent: "")
                 opacityHeader.isEnabled = false
@@ -210,7 +206,7 @@ final class StatusBarController {
                     let item = NSMenuItem()
                     let rowView = CheckmarkMenuItemView(
                         title: opacity.displayName,
-                        isChecked: opacity == selectedHoverOpacity
+                        isChecked: opacity == preferences.hoverOpacity
                     ) { [weak self] in
                         self?.onSelectHoverOpacity?(opacity)
                     }
@@ -224,7 +220,7 @@ final class StatusBarController {
             // Click Through
             let clickThroughItem = NSMenuItem(title: "Click Through", action: #selector(toggleClickThrough), keyEquivalent: "")
             clickThroughItem.target = self
-            clickThroughItem.state = selectedClickThroughMode == .clickThrough ? .on : .off
+            clickThroughItem.state = preferences.clickThroughMode == .clickThrough ? .on : .off
             behaviorMenu.addItem(clickThroughItem)
 
             behaviorItem.submenu = behaviorMenu
@@ -236,7 +232,7 @@ final class StatusBarController {
         // Launch at login
         let loginItem = NSMenuItem(title: "Launch at Login", action: #selector(toggleLaunchAtLogin), keyEquivalent: "")
         loginItem.target = self
-        loginItem.state = isLaunchAtLogin ? .on : .off
+        loginItem.state = preferences.launchAtLogin ? .on : .off
         menu.addItem(loginItem)
 
         menu.addItem(.separator())
@@ -266,7 +262,7 @@ final class StatusBarController {
     }
 
     @objc private func toggleMirror() {
-        onToggleMirror?(!isMirrorEnabled)
+        onToggleMirror?(!preferences.isMirrorEnabled)
     }
 
     @objc private func selectSizePreset(_ sender: NSMenuItem) {
@@ -311,11 +307,11 @@ final class StatusBarController {
     }
 
     @objc private func toggleLaunchAtLogin() {
-        onToggleLaunchAtLogin?(!isLaunchAtLogin)
+        onToggleLaunchAtLogin?(!preferences.launchAtLogin)
     }
 
     @objc private func toggleClickThrough() {
-        let newMode: ClickThroughMode = selectedClickThroughMode == .normal ? .clickThrough : .normal
+        let newMode: ClickThroughMode = preferences.clickThroughMode == .normal ? .clickThrough : .normal
         onSelectClickThroughMode?(newMode)
     }
 
