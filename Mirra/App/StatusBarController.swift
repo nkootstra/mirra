@@ -1,12 +1,17 @@
 import AppKit
+import AVFoundation
 import SwiftUI
 
 @MainActor
 final class StatusBarController {
     private var statusItem: NSStatusItem?
+    private var popover: NSPopover?
+    private var mouseTrackingArea: NSTrackingArea?
+    private var popoverDismissTimer: Timer?
 
     var isPreviewEnabled: Bool = false
     var isMirrorEnabled: Bool = true
+    var previewSession: AVCaptureSession?
     var selectedCameraID: String?
     var availableCameras: [CameraDevice] = []
     var selectedPlacement: PreviewPlacement = .bottomTrailing
@@ -40,12 +45,14 @@ final class StatusBarController {
             let image = NSImage(named: "MenuBarIcon")
             image?.isTemplate = true
             button.image = image
+            installMouseTracking(on: button)
         }
 
         updateMenu()
     }
 
     func updateMenu() {
+        dismissPopover()
         let menu = NSMenu()
 
         if cameraState == .unauthorized {
@@ -323,6 +330,70 @@ final class StatusBarController {
         if let url = URL(string: "x-apple.systempreferences:com.apple.preference.security?Privacy_Camera") {
             NSWorkspace.shared.open(url)
         }
+    }
+
+    // MARK: - Popover Preview
+
+    private func installMouseTracking(on button: NSStatusBarButton) {
+        let area = NSTrackingArea(
+            rect: button.bounds,
+            options: [.mouseEnteredAndExited, .activeAlways, .inVisibleRect],
+            owner: self,
+            userInfo: nil
+        )
+        button.addTrackingArea(area)
+        mouseTrackingArea = area
+
+        // Use NSEvent monitors since we're not a subclass of NSView
+        NSEvent.addLocalMonitorForEvents(matching: .mouseEntered) { [weak self] event in
+            if event.trackingArea === self?.mouseTrackingArea {
+                self?.showPopoverPreview()
+            }
+            return event
+        }
+        NSEvent.addLocalMonitorForEvents(matching: .mouseExited) { [weak self] event in
+            if event.trackingArea === self?.mouseTrackingArea {
+                self?.schedulePopoverDismiss()
+            }
+            return event
+        }
+    }
+
+    private func showPopoverPreview() {
+        popoverDismissTimer?.invalidate()
+        popoverDismissTimer = nil
+
+        guard isPreviewEnabled, let session = previewSession else { return }
+        guard popover == nil || popover?.isShown == false else { return }
+
+        let previewView = CameraPreviewView(session: session, isMirrored: isMirrorEnabled)
+        let hosted = NSHostingController(rootView: previewView.frame(width: 160, height: 120))
+
+        let pop = NSPopover()
+        pop.contentViewController = hosted
+        pop.behavior = .transient
+        pop.animates = true
+
+        if let button = statusItem?.button {
+            pop.show(relativeTo: button.bounds, of: button, preferredEdge: .minY)
+        }
+        popover = pop
+    }
+
+    private func schedulePopoverDismiss() {
+        popoverDismissTimer?.invalidate()
+        popoverDismissTimer = Timer.scheduledTimer(withTimeInterval: 0.3, repeats: false) { [weak self] _ in
+            Task { @MainActor in
+                self?.dismissPopover()
+            }
+        }
+    }
+
+    func dismissPopover() {
+        popoverDismissTimer?.invalidate()
+        popoverDismissTimer = nil
+        popover?.close()
+        popover = nil
     }
 }
 
