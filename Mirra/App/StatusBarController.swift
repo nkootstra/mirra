@@ -49,7 +49,8 @@ final class StatusBarController {
         } else {
             // Toggle preview
             let toggleTitle = isPreviewEnabled ? "Hide Preview" : "Show Preview"
-            let toggleItem = NSMenuItem(title: toggleTitle, action: #selector(togglePreview), keyEquivalent: "")
+            let toggleItem = NSMenuItem(title: toggleTitle, action: #selector(togglePreview), keyEquivalent: "M")
+            toggleItem.keyEquivalentModifierMask = [.command, .shift]
             toggleItem.target = self
             menu.addItem(toggleItem)
 

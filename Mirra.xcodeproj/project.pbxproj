@@ -13,6 +13,7 @@
 		A1000004 /* CameraQuality.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000020 /* CameraQuality.swift */; };
 		A1000005 /* CameraDevice.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000021 /* CameraDevice.swift */; };
 		A1000006 /* StatusBarController.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000022 /* StatusBarController.swift */; };
+		A1000021 /* GlobalHotkeyService.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000050 /* GlobalHotkeyService.swift */; };
 		A1000007 /* StatusMenuView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000023 /* StatusMenuView.swift */; };
 		A1000008 /* CameraState.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000024 /* CameraState.swift */; };
 		A1000009 /* CameraService.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000025 /* CameraService.swift */; };
@@ -51,6 +52,7 @@
 		A2000020 /* CameraQuality.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CameraQuality.swift; sourceTree = "<group>"; };
 		A2000021 /* CameraDevice.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CameraDevice.swift; sourceTree = "<group>"; };
 		A2000022 /* StatusBarController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StatusBarController.swift; sourceTree = "<group>"; };
+		A2000050 /* GlobalHotkeyService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GlobalHotkeyService.swift; sourceTree = "<group>"; };
 		A2000023 /* StatusMenuView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StatusMenuView.swift; sourceTree = "<group>"; };
 		A2000024 /* CameraState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CameraState.swift; sourceTree = "<group>"; };
 		A2000025 /* CameraService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CameraService.swift; sourceTree = "<group>"; };
@@ -141,6 +143,7 @@
 			isa = PBXGroup;
 			children = (
 				A2000022 /* StatusBarController.swift */,
+				A2000050 /* GlobalHotkeyService.swift */,
 			);
 			path = App;
 			sourceTree = "<group>";
@@ -282,6 +285,7 @@
 				A1000004 /* CameraQuality.swift in Sources */,
 				A1000005 /* CameraDevice.swift in Sources */,
 				A1000006 /* StatusBarController.swift in Sources */,
+				A1000021 /* GlobalHotkeyService.swift in Sources */,
 				A1000007 /* StatusMenuView.swift in Sources */,
 				A1000008 /* CameraState.swift in Sources */,
 				A1000009 /* CameraService.swift in Sources */,

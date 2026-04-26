@@ -8,6 +8,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     private let statusBarController = StatusBarController()
     private let previewWindowController = PreviewWindowController()
 
+    private let hotkeyService = GlobalHotkeyService()
     private var wasPreviewingBeforeSleep = false
 
     func applicationDidFinishLaunching(_ notification: Notification) {
@@ -51,6 +52,10 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             }
         }
 
+        // Set up global hotkey (Cmd+Shift+M)
+        hotkeyService.onToggle = { [weak self] in self?.togglePreview() }
+        hotkeyService.start()
+
         // Observe app activation for permission re-check
         NotificationCenter.default.addObserver(
             self,
@@ -75,6 +80,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     }
 
     func applicationWillTerminate(_ notification: Notification) {
+        hotkeyService.stop()
         cameraService.stopPreview()
         previewWindowController.close()
     }
