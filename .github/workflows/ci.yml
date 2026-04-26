@@ -1,0 +1,27 @@
+name: CI
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+
+jobs:
+  build-and-test:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build
+        run: |
+          xcodebuild -project Mirra.xcodeproj \
+            -scheme Mirra \
+            -configuration Debug \
+            build
+
+      - name: Run tests
+        run: |
+          xcodebuild -project Mirra.xcodeproj \
+            -scheme Mirra \
+            -configuration Debug \
+            test
