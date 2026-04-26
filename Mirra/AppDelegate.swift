@@ -21,6 +21,10 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         previewWindowController.hoverMode = preferences.hoverMode
         previewWindowController.hoverOpacity = preferences.hoverOpacity
         previewWindowController.targetScreenNumber = preferences.screenNumber
+        previewWindowController.savedWindowPosition = preferences.windowPosition
+        previewWindowController.onWindowPositionChanged = { [weak self] point in
+            self?.preferences.windowPosition = point
+        }
 
         // Set up status bar
         statusBarController.isMirrorEnabled = preferences.isMirrorEnabled

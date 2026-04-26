@@ -57,3 +57,35 @@ final class PreviewSizePresetTests: XCTestCase {
         }
     }
 }
+
+@MainActor
+final class WindowPositionPersistenceTests: XCTestCase {
+    private func freshDefaults() -> UserDefaults {
+        let suiteName = "WindowPositionTests"
+        UserDefaults.standard.removePersistentDomain(forName: suiteName)
+        return UserDefaults(suiteName: suiteName)!
+    }
+
+    func testSavedPositionIsRestored() {
+        let defaults = freshDefaults()
+        let store = PreferencesStore(defaults: defaults)
+        store.windowPosition = CGPoint(x: 100, y: 200)
+
+        let store2 = PreferencesStore(defaults: defaults)
+        XCTAssertEqual(store2.windowPosition, CGPoint(x: 100, y: 200))
+    }
+
+    func testDefaultPositionIsNil() {
+        let defaults = freshDefaults()
+        let store = PreferencesStore(defaults: defaults)
+        XCTAssertNil(store.windowPosition)
+    }
+
+    func testSelectingPlacementClearsPosition() {
+        let defaults = freshDefaults()
+        let store = PreferencesStore(defaults: defaults)
+        store.windowPosition = CGPoint(x: 100, y: 200)
+        store.placement = .topLeading
+        XCTAssertNil(store.windowPosition)
+    }
+}
