@@ -7,13 +7,13 @@ final class PreviewWindowController {
     private var panel: NSPanel?
     private var hostingView: NSHostingView<AnyView>?
     private var hoverTracker: HoverTrackingView?
-
-    private static let hoverOpacity: CGFloat = 0.3
-    private static let normalOpacity: CGFloat = 1.0
+    private var mouseMonitor: Any?
 
     var sizePreset: PreviewSizePreset = .medium
     var placement: PreviewPlacement = .bottomTrailing
     var shape: PreviewShape = .rectangle
+    var hoverMode: HoverMode = .fade
+    var hoverOpacity: HoverOpacity = .thirty
     var targetScreenNumber: Int?  // nil = main screen
 
     var isVisible: Bool { panel?.isVisible ?? false }
@@ -86,11 +86,14 @@ final class PreviewWindowController {
     }
 
     func hide() {
-        panel?.alphaValue = Self.normalOpacity
+        removeMouseMonitor()
+        panel?.ignoresMouseEvents = false
+        panel?.alphaValue = 1.0
         panel?.orderOut(nil)
     }
 
     func close() {
+        removeMouseMonitor()
         panel?.close()
         panel = nil
         hostingView = nil
@@ -193,16 +196,57 @@ final class PreviewWindowController {
     private func installHoverTracking() {
         guard let panel, let contentView = panel.contentView else { return }
         hoverTracker?.removeFromSuperview()
+        removeMouseMonitor()
         let tracker = HoverTrackingView(frame: contentView.bounds)
         tracker.autoresizingMask = [.width, .height]
         tracker.onMouseEntered = { [weak self] in
-            self?.animateOpacity(to: Self.hoverOpacity)
+            guard let self else { return }
+            switch self.hoverMode {
+            case .none: break
+            case .fade: self.animateOpacity(to: self.hoverOpacity.value)
+            case .hide: self.enterHideMode()
+            }
         }
         tracker.onMouseExited = { [weak self] in
-            self?.animateOpacity(to: Self.normalOpacity)
+            guard let self else { return }
+            switch self.hoverMode {
+            case .none: break
+            case .fade: self.animateOpacity(to: 1.0)
+            case .hide: break  // handled by mouse monitor
+            }
         }
         contentView.addSubview(tracker)
         hoverTracker = tracker
+    }
+
+    private func enterHideMode() {
+        guard let panel else { return }
+        panel.alphaValue = 0
+        panel.ignoresMouseEvents = true
+
+        // Poll mouse position to detect when cursor leaves the window frame
+        removeMouseMonitor()
+        mouseMonitor = NSEvent.addGlobalMonitorForEvents(matching: .mouseMoved) { [weak self] _ in
+            guard let self, let panel = self.panel else { return }
+            let mouseLocation = NSEvent.mouseLocation
+            if !panel.frame.contains(mouseLocation) {
+                self.exitHideMode()
+            }
+        }
+    }
+
+    private func exitHideMode() {
+        removeMouseMonitor()
+        guard let panel else { return }
+        panel.ignoresMouseEvents = false
+        animateOpacity(to: 1.0)
+    }
+
+    private func removeMouseMonitor() {
+        if let monitor = mouseMonitor {
+            NSEvent.removeMonitor(monitor)
+            mouseMonitor = nil
+        }
     }
 
     private func animateOpacity(to alpha: CGFloat) {

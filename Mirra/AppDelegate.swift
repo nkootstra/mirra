@@ -18,6 +18,8 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         previewWindowController.sizePreset = preferences.sizePreset
         previewWindowController.placement = preferences.placement
         previewWindowController.shape = preferences.shape
+        previewWindowController.hoverMode = preferences.hoverMode
+        previewWindowController.hoverOpacity = preferences.hoverOpacity
         previewWindowController.targetScreenNumber = preferences.screenNumber
 
         // Set up status bar
@@ -27,6 +29,8 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         statusBarController.selectedPlacement = preferences.placement
         statusBarController.selectedSizePreset = preferences.sizePreset
         statusBarController.selectedShape = preferences.shape
+        statusBarController.selectedHoverMode = preferences.hoverMode
+        statusBarController.selectedHoverOpacity = preferences.hoverOpacity
         statusBarController.selectedScreenNumber = preferences.screenNumber
         statusBarController.isLaunchAtLogin = preferences.launchAtLogin
 
@@ -38,6 +42,8 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         statusBarController.onSelectPlacement = { [weak self] placement in self?.setPlacement(placement) }
         statusBarController.onSelectSizePreset = { [weak self] preset in self?.setSizePreset(preset) }
         statusBarController.onSelectShape = { [weak self] shape in self?.setShape(shape) }
+        statusBarController.onSelectHoverMode = { [weak self] mode in self?.setHoverMode(mode) }
+        statusBarController.onSelectHoverOpacity = { [weak self] opacity in self?.setHoverOpacity(opacity) }
         statusBarController.onSelectScreen = { [weak self] num in self?.setScreen(num) }
         statusBarController.onToggleLaunchAtLogin = { [weak self] enabled in self?.setLaunchAtLogin(enabled) }
 
@@ -159,6 +165,20 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         previewWindowController.updateShape(shape)
         statusBarController.selectedShape = shape
         statusBarController.updateMenu()
+    }
+
+    private func setHoverMode(_ mode: HoverMode) {
+        preferences.hoverMode = mode
+        previewWindowController.hoverMode = mode
+        statusBarController.selectedHoverMode = mode
+        // Don't call updateMenu() -- let the menu stay open for opacity selection
+    }
+
+    private func setHoverOpacity(_ opacity: HoverOpacity) {
+        preferences.hoverOpacity = opacity
+        previewWindowController.hoverOpacity = opacity
+        statusBarController.selectedHoverOpacity = opacity
+        // Don't call updateMenu() -- avoid closing the menu
     }
 
     private func setLaunchAtLogin(_ enabled: Bool) {

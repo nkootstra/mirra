@@ -16,6 +16,8 @@ final class PreferencesStore {
         static let shape = "shape"
         static let launchAtLogin = "launchAtLogin"
         static let screenNumber = "screenNumber"
+        static let hoverMode = "hoverMode"
+        static let hoverOpacity = "hoverOpacity"
     }
 
     var selectedCameraID: String? {
@@ -60,6 +62,14 @@ final class PreferencesStore {
         }
     }
 
+    var hoverMode: HoverMode {
+        didSet { defaults.set(hoverMode.rawValue, forKey: Keys.hoverMode) }
+    }
+
+    var hoverOpacity: HoverOpacity {
+        didSet { defaults.set(hoverOpacity.rawValue, forKey: Keys.hoverOpacity) }
+    }
+
     init() {
         self.selectedCameraID = defaults.string(forKey: Keys.selectedCameraID)
         self.isPreviewEnabled = defaults.bool(forKey: Keys.isPreviewEnabled)
@@ -72,5 +82,7 @@ final class PreferencesStore {
         self.shape = PreviewShape(rawValue: defaults.string(forKey: Keys.shape) ?? "") ?? .rectangle
         self.launchAtLogin = defaults.bool(forKey: Keys.launchAtLogin)
         self.screenNumber = defaults.object(forKey: Keys.screenNumber) as? Int
+        self.hoverMode = HoverMode(rawValue: defaults.string(forKey: Keys.hoverMode) ?? "") ?? .fade
+        self.hoverOpacity = HoverOpacity(rawValue: defaults.string(forKey: Keys.hoverOpacity) ?? "") ?? .thirty
     }
 }

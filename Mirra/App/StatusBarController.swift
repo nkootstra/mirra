@@ -13,6 +13,8 @@ final class StatusBarController {
     var selectedPlacement: PreviewPlacement = .bottomTrailing
     var selectedSizePreset: PreviewSizePreset = .medium
     var selectedShape: PreviewShape = .rectangle
+    var selectedHoverMode: HoverMode = .fade
+    var selectedHoverOpacity: HoverOpacity = .thirty
     var selectedScreenNumber: Int?  // nil = main screen
     var isLaunchAtLogin: Bool = false
     var cameraState: CameraState = .idle
@@ -24,6 +26,8 @@ final class StatusBarController {
     var onSelectPlacement: ((PreviewPlacement) -> Void)?
     var onSelectSizePreset: ((PreviewSizePreset) -> Void)?
     var onSelectShape: ((PreviewShape) -> Void)?
+    var onSelectHoverMode: ((HoverMode) -> Void)?
+    var onSelectHoverOpacity: ((HoverOpacity) -> Void)?
     var onSelectScreen: ((Int?) -> Void)?
     var onToggleLaunchAtLogin: ((Bool) -> Void)?
 
@@ -129,6 +133,36 @@ final class StatusBarController {
             shapeItem.submenu = shapeMenu
             menu.addItem(shapeItem)
 
+            // Hover behavior submenu
+            let hoverItem = NSMenuItem(title: "On Hover", action: nil, keyEquivalent: "")
+            let hoverMenu = NSMenu()
+            for mode in HoverMode.allCases {
+                let item = NSMenuItem(title: mode.displayName, action: #selector(selectHoverMode(_:)), keyEquivalent: "")
+                item.target = self
+                item.representedObject = mode.rawValue
+                item.state = mode == selectedHoverMode ? .on : .off
+                hoverMenu.addItem(item)
+            }
+            if selectedHoverMode == .fade {
+                hoverMenu.addItem(.separator())
+                let opacityHeader = NSMenuItem(title: "Fade To", action: nil, keyEquivalent: "")
+                opacityHeader.isEnabled = false
+                hoverMenu.addItem(opacityHeader)
+                for opacity in HoverOpacity.allCases {
+                    let item = NSMenuItem()
+                    let rowView = CheckmarkMenuItemView(
+                        title: opacity.displayName,
+                        isChecked: opacity == selectedHoverOpacity
+                    ) { [weak self] in
+                        self?.onSelectHoverOpacity?(opacity)
+                    }
+                    item.view = rowView
+                    hoverMenu.addItem(item)
+                }
+            }
+            hoverItem.submenu = hoverMenu
+            menu.addItem(hoverItem)
+
             // Position submenu
             let posItem = NSMenuItem(title: "Position", action: nil, keyEquivalent: "")
             let posMenu = NSMenu()
@@ -220,6 +254,18 @@ final class StatusBarController {
         onSelectShape?(shape)
     }
 
+    @objc private func selectHoverMode(_ sender: NSMenuItem) {
+        guard let raw = sender.representedObject as? String,
+              let mode = HoverMode(rawValue: raw) else { return }
+        onSelectHoverMode?(mode)
+    }
+
+    @objc private func selectHoverOpacity(_ sender: NSMenuItem) {
+        guard let raw = sender.representedObject as? String,
+              let opacity = HoverOpacity(rawValue: raw) else { return }
+        onSelectHoverOpacity?(opacity)
+    }
+
     @objc private func selectPlacement(_ sender: NSMenuItem) {
         guard let raw = sender.representedObject as? String,
               let placement = PreviewPlacement(rawValue: raw) else { return }
@@ -239,5 +285,86 @@ final class StatusBarController {
         if let url = URL(string: "x-apple.systempreferences:com.apple.preference.security?Privacy_Camera") {
             NSWorkspace.shared.open(url)
         }
+    }
+}
+
+// MARK: - Custom menu item view that doesn't dismiss menu on click
+
+private class CheckmarkMenuItemView: NSView {
+    private let onClick: () -> Void
+    private let titleLabel = NSTextField(labelWithString: "")
+    private let checkLabel = NSTextField(labelWithString: "")
+    private var trackingArea: NSTrackingArea?
+    private var isHighlighted = false
+
+    init(title: String, isChecked: Bool, onClick: @escaping () -> Void) {
+        self.onClick = onClick
+        super.init(frame: NSRect(x: 0, y: 0, width: 200, height: 22))
+
+        checkLabel.stringValue = isChecked ? "✓" : ""
+        checkLabel.font = .menuFont(ofSize: 13)
+        checkLabel.textColor = .labelColor
+        checkLabel.translatesAutoresizingMaskIntoConstraints = false
+        addSubview(checkLabel)
+
+        titleLabel.stringValue = title
+        titleLabel.font = .menuFont(ofSize: 13)
+        titleLabel.textColor = .labelColor
+        titleLabel.translatesAutoresizingMaskIntoConstraints = false
+        addSubview(titleLabel)
+
+        NSLayoutConstraint.activate([
+            checkLabel.leadingAnchor.constraint(equalTo: leadingAnchor, constant: 14),
+            checkLabel.centerYAnchor.constraint(equalTo: centerYAnchor),
+            checkLabel.widthAnchor.constraint(equalToConstant: 16),
+            titleLabel.leadingAnchor.constraint(equalTo: checkLabel.trailingAnchor, constant: 2),
+            titleLabel.centerYAnchor.constraint(equalTo: centerYAnchor),
+            titleLabel.trailingAnchor.constraint(lessThanOrEqualTo: trailingAnchor, constant: -14),
+        ])
+    }
+
+    required init?(coder: NSCoder) { fatalError() }
+
+    override func updateTrackingAreas() {
+        super.updateTrackingAreas()
+        if let existing = trackingArea { removeTrackingArea(existing) }
+        let area = NSTrackingArea(rect: bounds, options: [.mouseEnteredAndExited, .activeAlways], owner: self)
+        addTrackingArea(area)
+        trackingArea = area
+    }
+
+    override func mouseEntered(with event: NSEvent) {
+        isHighlighted = true
+        needsDisplay = true
+    }
+
+    override func mouseExited(with event: NSEvent) {
+        isHighlighted = false
+        needsDisplay = true
+    }
+
+    override func draw(_ dirtyRect: NSRect) {
+        if isHighlighted {
+            NSColor.selectedContentBackgroundColor.setFill()
+            NSBezierPath(roundedRect: bounds.insetBy(dx: 4, dy: 1), xRadius: 4, yRadius: 4).fill()
+            titleLabel.textColor = .white
+            checkLabel.textColor = .white
+        } else {
+            titleLabel.textColor = .labelColor
+            checkLabel.textColor = .labelColor
+        }
+    }
+
+    override func mouseUp(with event: NSEvent) {
+        onClick()
+        // Update checkmark visually without closing menu
+        if let menu = enclosingMenuItem?.menu {
+            for item in menu.items {
+                if let view = item.view as? CheckmarkMenuItemView {
+                    view.checkLabel.stringValue = ""
+                }
+            }
+        }
+        checkLabel.stringValue = "✓"
     }
 }
