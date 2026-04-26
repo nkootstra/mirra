@@ -17,6 +17,8 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         cameraService.quality = preferences.quality
         previewWindowController.sizePreset = preferences.sizePreset
         previewWindowController.placement = preferences.placement
+        previewWindowController.shape = preferences.shape
+        previewWindowController.targetScreenNumber = preferences.screenNumber
 
         // Set up status bar
         statusBarController.isMirrorEnabled = preferences.isMirrorEnabled
@@ -24,6 +26,8 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         statusBarController.selectedCameraID = preferences.selectedCameraID
         statusBarController.selectedPlacement = preferences.placement
         statusBarController.selectedSizePreset = preferences.sizePreset
+        statusBarController.selectedShape = preferences.shape
+        statusBarController.selectedScreenNumber = preferences.screenNumber
         statusBarController.isLaunchAtLogin = preferences.launchAtLogin
 
         // Wire callbacks
@@ -33,6 +37,8 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         statusBarController.onSelectQuality = { [weak self] quality in self?.setQuality(quality) }
         statusBarController.onSelectPlacement = { [weak self] placement in self?.setPlacement(placement) }
         statusBarController.onSelectSizePreset = { [weak self] preset in self?.setSizePreset(preset) }
+        statusBarController.onSelectShape = { [weak self] shape in self?.setShape(shape) }
+        statusBarController.onSelectScreen = { [weak self] num in self?.setScreen(num) }
         statusBarController.onToggleLaunchAtLogin = { [weak self] enabled in self?.setLaunchAtLogin(enabled) }
 
         statusBarController.setup()
@@ -138,6 +144,20 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         preferences.sizePreset = preset
         previewWindowController.updateSize(preset)
         statusBarController.selectedSizePreset = preset
+        statusBarController.updateMenu()
+    }
+
+    private func setScreen(_ screenNumber: Int?) {
+        preferences.screenNumber = screenNumber
+        previewWindowController.updateScreen(screenNumber)
+        statusBarController.selectedScreenNumber = screenNumber
+        statusBarController.updateMenu()
+    }
+
+    private func setShape(_ shape: PreviewShape) {
+        preferences.shape = shape
+        previewWindowController.updateShape(shape)
+        statusBarController.selectedShape = shape
         statusBarController.updateMenu()
     }
 

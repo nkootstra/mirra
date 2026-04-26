@@ -9,8 +9,19 @@ final class PreviewWindowController {
 
     var sizePreset: PreviewSizePreset = .medium
     var placement: PreviewPlacement = .bottomTrailing
+    var shape: PreviewShape = .roundedRectangle
+    var targetScreenNumber: Int?  // nil = main screen
 
     var isVisible: Bool { panel?.isVisible ?? false }
+
+    /// The screen to place the preview on.
+    private var targetScreen: NSScreen {
+        if let num = targetScreenNumber {
+            return NSScreen.screens.first { $0.deviceDescription[NSDeviceDescriptionKey("NSScreenNumber")] as? Int == num }
+                ?? NSScreen.main ?? NSScreen.screens[0]
+        }
+        return NSScreen.main ?? NSScreen.screens[0]
+    }
 
     func show(session: AVCaptureSession, isMirrored: Bool) {
         if let panel {
@@ -27,7 +38,7 @@ final class PreviewWindowController {
         }
 
         let size = sizePreset.size
-        let screenFrame = NSScreen.main?.visibleFrame ?? .zero
+        let screenFrame = targetScreen.visibleFrame
         let origin = placement.origin(for: size, in: screenFrame)
         let frame = NSRect(origin: origin, size: size)
 
@@ -76,17 +87,28 @@ final class PreviewWindowController {
         sizePreset = preset
         guard let panel else { return }
         let newSize = preset.size
-        let screenFrame = NSScreen.main?.visibleFrame ?? .zero
+        let screenFrame = targetScreen.visibleFrame
         let origin = placement.origin(for: newSize, in: screenFrame)
         let frame = NSRect(origin: origin, size: newSize)
         panel.setFrame(frame, display: true, animate: true)
+        if let hosting = panel.contentView { applyCornerRadius(to: hosting) }
     }
 
     func updatePlacement(_ newPlacement: PreviewPlacement) {
         placement = newPlacement
         guard let panel else { return }
-        let screenFrame = NSScreen.main?.visibleFrame ?? .zero
+        let screenFrame = targetScreen.visibleFrame
         let origin = newPlacement.origin(for: panel.frame.size, in: screenFrame)
+        var frame = panel.frame
+        frame.origin = origin
+        panel.setFrame(frame, display: true, animate: true)
+    }
+
+    func updateScreen(_ screenNumber: Int?) {
+        targetScreenNumber = screenNumber
+        guard let panel, panel.isVisible else { return }
+        let screenFrame = targetScreen.visibleFrame
+        let origin = placement.origin(for: panel.frame.size, in: screenFrame)
         var frame = panel.frame
         frame.origin = origin
         panel.setFrame(frame, display: true, animate: true)
@@ -111,8 +133,20 @@ final class PreviewWindowController {
 
     private func applyCornerRadius(to view: NSView) {
         view.wantsLayer = true
-        view.layer?.cornerRadius = 10
+        let maxRadius = min(view.bounds.width, view.bounds.height) / 2
+        let radius: CGFloat = switch shape {
+        case .roundedRectangle: 10
+        case .circle: maxRadius
+        case .rectangle: 0
+        }
+        view.layer?.cornerRadius = radius
         view.layer?.masksToBounds = true
+    }
+
+    func updateShape(_ newShape: PreviewShape) {
+        shape = newShape
+        guard let panel, let hosting = panel.contentView else { return }
+        applyCornerRadius(to: hosting)
     }
 
     @objc private func windowDidMove(_ notification: Notification) {

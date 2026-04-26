@@ -12,6 +12,8 @@ final class StatusBarController {
     var availableCameras: [CameraDevice] = []
     var selectedPlacement: PreviewPlacement = .bottomTrailing
     var selectedSizePreset: PreviewSizePreset = .medium
+    var selectedShape: PreviewShape = .roundedRectangle
+    var selectedScreenNumber: Int?  // nil = main screen
     var isLaunchAtLogin: Bool = false
     var cameraState: CameraState = .idle
 
@@ -21,6 +23,8 @@ final class StatusBarController {
     var onSelectQuality: ((CameraQuality) -> Void)?
     var onSelectPlacement: ((PreviewPlacement) -> Void)?
     var onSelectSizePreset: ((PreviewSizePreset) -> Void)?
+    var onSelectShape: ((PreviewShape) -> Void)?
+    var onSelectScreen: ((Int?) -> Void)?
     var onToggleLaunchAtLogin: ((Bool) -> Void)?
 
     func setup() {
@@ -112,6 +116,19 @@ final class StatusBarController {
             sizeItem.submenu = sizeMenu
             menu.addItem(sizeItem)
 
+            // Shape submenu
+            let shapeItem = NSMenuItem(title: "Shape", action: nil, keyEquivalent: "")
+            let shapeMenu = NSMenu()
+            for shape in PreviewShape.allCases {
+                let item = NSMenuItem(title: shape.displayName, action: #selector(selectShape(_:)), keyEquivalent: "")
+                item.target = self
+                item.representedObject = shape.rawValue
+                item.state = shape == selectedShape ? .on : .off
+                shapeMenu.addItem(item)
+            }
+            shapeItem.submenu = shapeMenu
+            menu.addItem(shapeItem)
+
             // Position submenu
             let posItem = NSMenuItem(title: "Position", action: nil, keyEquivalent: "")
             let posMenu = NSMenu()
@@ -124,6 +141,27 @@ final class StatusBarController {
             }
             posItem.submenu = posMenu
             menu.addItem(posItem)
+
+            // Display submenu (only show when multiple screens)
+            let screens = NSScreen.screens
+            if screens.count > 1 {
+                let displayItem = NSMenuItem(title: "Display", action: nil, keyEquivalent: "")
+                let displayMenu = NSMenu()
+
+                for (index, screen) in screens.enumerated() {
+                    let screenNumber = screen.deviceDescription[NSDeviceDescriptionKey("NSScreenNumber")] as? Int
+                    let name = screen.localizedName
+                    let label = index == 0 ? "\(name) (Main)" : name
+                    let item = NSMenuItem(title: label, action: #selector(selectScreen(_:)), keyEquivalent: "")
+                    item.target = self
+                    item.representedObject = screenNumber
+                    item.state = screenNumber == selectedScreenNumber ? .on : .off
+                    displayMenu.addItem(item)
+                }
+
+                displayItem.submenu = displayMenu
+                menu.addItem(displayItem)
+            }
         }
 
         menu.addItem(.separator())
@@ -176,10 +214,21 @@ final class StatusBarController {
         onSelectSizePreset?(preset)
     }
 
+    @objc private func selectShape(_ sender: NSMenuItem) {
+        guard let raw = sender.representedObject as? String,
+              let shape = PreviewShape(rawValue: raw) else { return }
+        onSelectShape?(shape)
+    }
+
     @objc private func selectPlacement(_ sender: NSMenuItem) {
         guard let raw = sender.representedObject as? String,
               let placement = PreviewPlacement(rawValue: raw) else { return }
         onSelectPlacement?(placement)
+    }
+
+    @objc private func selectScreen(_ sender: NSMenuItem) {
+        let screenNumber = sender.representedObject as? Int
+        onSelectScreen?(screenNumber)
     }
 
     @objc private func toggleLaunchAtLogin() {

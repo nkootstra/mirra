@@ -13,7 +13,9 @@ final class PreferencesStore {
         static let quality = "quality"
         static let placement = "placement"
         static let sizePreset = "sizePreset"
+        static let shape = "shape"
         static let launchAtLogin = "launchAtLogin"
+        static let screenNumber = "screenNumber"
     }
 
     var selectedCameraID: String? {
@@ -40,8 +42,22 @@ final class PreferencesStore {
         didSet { defaults.set(sizePreset.rawValue, forKey: Keys.sizePreset) }
     }
 
+    var shape: PreviewShape {
+        didSet { defaults.set(shape.rawValue, forKey: Keys.shape) }
+    }
+
     var launchAtLogin: Bool {
         didSet { defaults.set(launchAtLogin, forKey: Keys.launchAtLogin) }
+    }
+
+    var screenNumber: Int? {
+        didSet {
+            if let screenNumber {
+                defaults.set(screenNumber, forKey: Keys.screenNumber)
+            } else {
+                defaults.removeObject(forKey: Keys.screenNumber)
+            }
+        }
     }
 
     init() {
@@ -53,6 +69,8 @@ final class PreferencesStore {
         self.quality = CameraQuality(rawValue: defaults.string(forKey: Keys.quality) ?? "") ?? .medium
         self.placement = PreviewPlacement(rawValue: defaults.string(forKey: Keys.placement) ?? "") ?? .bottomTrailing
         self.sizePreset = PreviewSizePreset(rawValue: defaults.string(forKey: Keys.sizePreset) ?? "") ?? .medium
+        self.shape = PreviewShape(rawValue: defaults.string(forKey: Keys.shape) ?? "") ?? .roundedRectangle
         self.launchAtLogin = defaults.bool(forKey: Keys.launchAtLogin)
+        self.screenNumber = defaults.object(forKey: Keys.screenNumber) as? Int
     }
 }
