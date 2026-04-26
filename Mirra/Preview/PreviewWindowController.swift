@@ -31,13 +31,13 @@ final class PreviewWindowController {
         return base
     }
 
-    /// The screen to place the preview on.
-    private var targetScreen: NSScreen {
+    /// The screen to place the preview on, or nil if no screens available.
+    private var targetScreen: NSScreen? {
         if let num = targetScreenNumber {
             return NSScreen.screens.first { $0.deviceDescription[NSDeviceDescriptionKey("NSScreenNumber")] as? Int == num }
-                ?? NSScreen.main ?? NSScreen.screens[0]
+                ?? NSScreen.main ?? NSScreen.screens.first
         }
-        return NSScreen.main ?? NSScreen.screens[0]
+        return NSScreen.main ?? NSScreen.screens.first
     }
 
     func show(session: AVCaptureSession, isMirrored: Bool) {
@@ -56,7 +56,7 @@ final class PreviewWindowController {
         }
 
         let size = effectiveSize
-        let screenFrame = targetScreen.visibleFrame
+        guard let screenFrame = targetScreen?.visibleFrame else { return }
         let origin: NSPoint
         if let saved = savedWindowPosition {
             origin = saved
@@ -115,7 +115,7 @@ final class PreviewWindowController {
         sizePreset = preset
         guard let panel else { return }
         let newSize = effectiveSize
-        let screenFrame = targetScreen.visibleFrame
+        guard let screenFrame = targetScreen?.visibleFrame else { return }
         let origin = placement.origin(for: newSize, in: screenFrame)
         let frame = NSRect(origin: origin, size: newSize)
         panel.setFrame(frame, display: true, animate: true)
@@ -126,7 +126,7 @@ final class PreviewWindowController {
         placement = newPlacement
         savedWindowPosition = nil
         guard let panel else { return }
-        let screenFrame = targetScreen.visibleFrame
+        guard let screenFrame = targetScreen?.visibleFrame else { return }
         let origin = newPlacement.origin(for: panel.frame.size, in: screenFrame)
         var frame = panel.frame
         frame.origin = origin
@@ -136,7 +136,7 @@ final class PreviewWindowController {
     func updateScreen(_ screenNumber: Int?) {
         targetScreenNumber = screenNumber
         guard let panel, panel.isVisible else { return }
-        let screenFrame = targetScreen.visibleFrame
+        guard let screenFrame = targetScreen?.visibleFrame else { return }
         let origin = placement.origin(for: panel.frame.size, in: screenFrame)
         var frame = panel.frame
         frame.origin = origin
@@ -196,7 +196,7 @@ final class PreviewWindowController {
         shape = newShape
         guard let panel else { return }
         let newSize = effectiveSize
-        let screenFrame = targetScreen.visibleFrame
+        guard let screenFrame = targetScreen?.visibleFrame else { return }
         let origin = placement.origin(for: newSize, in: screenFrame)
         let frame = NSRect(origin: origin, size: newSize)
         panel.setFrame(frame, display: true, animate: true)

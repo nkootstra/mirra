@@ -224,8 +224,6 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     private func showNotchPreview() {
         guard notchPanel == nil else { return }
 
-        isNotchPreviewActive = true
-
         // Start camera if not already running
         var session = cameraService.previewSession
         if session == nil {
@@ -233,6 +231,8 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             session = cameraService.previewSession
         }
         guard let session else { return }
+
+        isNotchPreviewActive = true
 
         // Start mic monitoring
         micCheck.check()

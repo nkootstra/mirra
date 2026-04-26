@@ -14,6 +14,7 @@ final class CameraService {
     private var captureSession: AVCaptureSession?
     private var currentInput: AVCaptureDeviceInput?
     private var discoverySession: AVCaptureDevice.DiscoverySession?
+    private let sessionQueue = DispatchQueue(label: "com.mirra.captureSession")
 
     var selectedCameraID: String?
     var onStateChange: (() -> Void)?
@@ -49,7 +50,6 @@ final class CameraService {
             if state == .unauthorized || state == .noCameraAvailable {
                 return
             }
-            // If already previewing, just return
             if state == .previewing { return }
             return
         }
@@ -76,15 +76,17 @@ final class CameraService {
         }
 
         captureSession = session
-        session.startRunning()
+        sessionQueue.async { session.startRunning() }
         state = .previewing
         observeDevice(device)
     }
 
     func stopPreview() {
-        captureSession?.stopRunning()
-        if let input = currentInput {
-            captureSession?.removeInput(input)
+        let session = captureSession
+        let input = currentInput
+        sessionQueue.async {
+            session?.stopRunning()
+            if let input { session?.removeInput(input) }
         }
         currentInput = nil
         captureSession = nil

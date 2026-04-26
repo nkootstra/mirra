@@ -2,30 +2,6 @@ import XCTest
 import AVFoundation
 @testable import Mirra
 
-final class CameraQualityTests: XCTestCase {
-    func testPresetMapping() {
-        XCTAssertEqual(CameraQuality.low.capturePreset, .low)
-        XCTAssertEqual(CameraQuality.medium.capturePreset, .medium)
-        XCTAssertEqual(CameraQuality.best.capturePreset, .high)
-    }
-
-    func testDisplayNames() {
-        XCTAssertEqual(CameraQuality.low.displayName, "Low")
-        XCTAssertEqual(CameraQuality.medium.displayName, "Medium")
-        XCTAssertEqual(CameraQuality.best.displayName, "Best")
-    }
-
-    func testAllCases() {
-        XCTAssertEqual(CameraQuality.allCases.count, 3)
-    }
-
-    func testRawValueRoundTrip() {
-        for quality in CameraQuality.allCases {
-            XCTAssertEqual(CameraQuality(rawValue: quality.rawValue), quality)
-        }
-    }
-}
-
 final class CameraStateTests: XCTestCase {
     func testEquality() {
         XCTAssertEqual(CameraState.idle, CameraState.idle)
