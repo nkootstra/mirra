@@ -179,10 +179,11 @@ final class PreviewWindowController {
         guard let panel else { return }
         guard let screen = panel.screen ?? NSScreen.main else { return }
         let screenFrame = screen.visibleFrame
+        let padding: CGFloat = 20
         var frame = panel.frame
 
-        frame.origin.x = max(screenFrame.minX, min(frame.origin.x, screenFrame.maxX - frame.width))
-        frame.origin.y = max(screenFrame.minY, min(frame.origin.y, screenFrame.maxY - frame.height))
+        frame.origin.x = max(screenFrame.minX + padding, min(frame.origin.x, screenFrame.maxX - frame.width - padding))
+        frame.origin.y = max(screenFrame.minY + padding, min(frame.origin.y, screenFrame.maxY - frame.height - padding))
 
         if frame != panel.frame {
             panel.setFrameOrigin(frame.origin)
