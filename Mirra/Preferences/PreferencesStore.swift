@@ -20,6 +20,7 @@ final class PreferencesStore {
         static let hoverOpacity = "hoverOpacity"
         static let windowPositionX = "windowPositionX"
         static let windowPositionY = "windowPositionY"
+        static let clickThroughMode = "clickThroughMode"
     }
 
     var selectedCameraID: String? {
@@ -88,6 +89,15 @@ final class PreferencesStore {
         }
     }
 
+    var clickThroughMode: ClickThroughMode {
+        didSet {
+            defaults.set(clickThroughMode.rawValue, forKey: Keys.clickThroughMode)
+            if clickThroughMode == .clickThrough {
+                hoverMode = .none
+            }
+        }
+    }
+
     init(defaults: UserDefaults = .standard) {
         self.defaults = defaults
         self.selectedCameraID = defaults.string(forKey: Keys.selectedCameraID)
@@ -103,6 +113,7 @@ final class PreferencesStore {
         self.screenNumber = defaults.object(forKey: Keys.screenNumber) as? Int
         self.hoverMode = HoverMode(rawValue: defaults.string(forKey: Keys.hoverMode) ?? "") ?? .fade
         self.hoverOpacity = HoverOpacity(rawValue: defaults.string(forKey: Keys.hoverOpacity) ?? "") ?? .thirty
+        self.clickThroughMode = ClickThroughMode(rawValue: defaults.string(forKey: Keys.clickThroughMode) ?? "") ?? .normal
 
         if defaults.object(forKey: Keys.windowPositionX) != nil {
             let x = defaults.double(forKey: Keys.windowPositionX)

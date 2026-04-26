@@ -37,6 +37,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         statusBarController.selectedHoverOpacity = preferences.hoverOpacity
         statusBarController.selectedScreenNumber = preferences.screenNumber
         statusBarController.isLaunchAtLogin = preferences.launchAtLogin
+        statusBarController.selectedClickThroughMode = preferences.clickThroughMode
 
         // Wire callbacks
         statusBarController.onTogglePreview = { [weak self] in self?.togglePreview() }
@@ -50,6 +51,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         statusBarController.onSelectHoverOpacity = { [weak self] opacity in self?.setHoverOpacity(opacity) }
         statusBarController.onSelectScreen = { [weak self] num in self?.setScreen(num) }
         statusBarController.onToggleLaunchAtLogin = { [weak self] enabled in self?.setLaunchAtLogin(enabled) }
+        statusBarController.onSelectClickThroughMode = { [weak self] mode in self?.setClickThroughMode(mode) }
 
         statusBarController.setup()
 
@@ -194,6 +196,15 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         preferences.launchAtLogin = enabled
         LaunchAtLoginService.setEnabled(enabled)
         statusBarController.isLaunchAtLogin = enabled
+        statusBarController.updateMenu()
+    }
+
+    private func setClickThroughMode(_ mode: ClickThroughMode) {
+        preferences.clickThroughMode = mode
+        previewWindowController.updateClickThrough(mode)
+        statusBarController.selectedClickThroughMode = mode
+        // Also sync hover since click-through disables it
+        statusBarController.selectedHoverMode = preferences.hoverMode
         statusBarController.updateMenu()
     }
 
