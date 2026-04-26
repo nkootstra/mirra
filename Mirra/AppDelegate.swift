@@ -7,7 +7,7 @@ import SwiftUI
 class AppDelegate: NSObject, NSApplicationDelegate {
     private let preferences = PreferencesStore()
     private let cameraService = CameraService()
-    private let statusBarController = StatusBarController()
+    private lazy var statusBarController = StatusBarController(preferences: preferences)
     private let previewWindowController = PreviewWindowController()
 
     private let hotkeyService = GlobalHotkeyService()
@@ -31,19 +31,6 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         previewWindowController.onWindowPositionChanged = { [weak self] point in
             self?.preferences.windowPosition = point
         }
-
-        // Set up status bar
-        statusBarController.isMirrorEnabled = preferences.isMirrorEnabled
-        statusBarController.selectedCameraID = preferences.selectedCameraID
-        statusBarController.selectedPlacement = preferences.placement
-        statusBarController.selectedSizePreset = preferences.sizePreset
-        statusBarController.selectedShape = preferences.shape
-        statusBarController.selectedBorderRadius = preferences.borderRadius
-        statusBarController.selectedHoverMode = preferences.hoverMode
-        statusBarController.selectedHoverOpacity = preferences.hoverOpacity
-        statusBarController.selectedScreenNumber = preferences.screenNumber
-        statusBarController.isLaunchAtLogin = preferences.launchAtLogin
-        statusBarController.selectedClickThroughMode = preferences.clickThroughMode
 
         // Wire callbacks
         statusBarController.onTogglePreview = { [weak self] in self?.togglePreview() }
@@ -138,7 +125,6 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     private func selectCamera(_ id: String) {
         preferences.selectedCameraID = id
         cameraService.switchCamera(to: id)
-        statusBarController.selectedCameraID = id
         if cameraService.state == .previewing, let session = cameraService.previewSession {
             previewWindowController.show(session: session, isMirrored: preferences.isMirrorEnabled)
         }
@@ -147,7 +133,6 @@ class AppDelegate: NSObject, NSApplicationDelegate {
 
     private func setMirror(_ enabled: Bool) {
         preferences.isMirrorEnabled = enabled
-        statusBarController.isMirrorEnabled = enabled
         if let session = cameraService.previewSession {
             previewWindowController.updateMirror(enabled, session: session)
         }
@@ -157,65 +142,54 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     private func setPlacement(_ placement: PreviewPlacement) {
         preferences.placement = placement
         previewWindowController.updatePlacement(placement)
-        statusBarController.selectedPlacement = placement
         statusBarController.updateMenu()
     }
 
     private func setSizePreset(_ preset: PreviewSizePreset) {
         preferences.sizePreset = preset
         previewWindowController.updateSize(preset)
-        statusBarController.selectedSizePreset = preset
         statusBarController.updateMenu()
     }
 
     private func setScreen(_ screenNumber: Int?) {
         preferences.screenNumber = screenNumber
         previewWindowController.updateScreen(screenNumber)
-        statusBarController.selectedScreenNumber = screenNumber
         statusBarController.updateMenu()
     }
 
     private func setShape(_ shape: PreviewShape) {
         preferences.shape = shape
         previewWindowController.updateShape(shape)
-        statusBarController.selectedShape = shape
         statusBarController.updateMenu()
     }
 
     private func setBorderRadius(_ radius: BorderRadius) {
         preferences.borderRadius = radius
         previewWindowController.updateBorderRadius(radius)
-        statusBarController.selectedBorderRadius = radius
         statusBarController.updateMenu()
     }
 
     private func setHoverMode(_ mode: HoverMode) {
         preferences.hoverMode = mode
         previewWindowController.hoverMode = mode
-        statusBarController.selectedHoverMode = mode
         // Don't call updateMenu() -- let the menu stay open for opacity selection
     }
 
     private func setHoverOpacity(_ opacity: HoverOpacity) {
         preferences.hoverOpacity = opacity
         previewWindowController.hoverOpacity = opacity
-        statusBarController.selectedHoverOpacity = opacity
         // Don't call updateMenu() -- avoid closing the menu
     }
 
     private func setLaunchAtLogin(_ enabled: Bool) {
         preferences.launchAtLogin = enabled
         LaunchAtLoginService.setEnabled(enabled)
-        statusBarController.isLaunchAtLogin = enabled
         statusBarController.updateMenu()
     }
 
     private func setClickThroughMode(_ mode: ClickThroughMode) {
         preferences.clickThroughMode = mode
         previewWindowController.updateClickThrough(mode)
-        statusBarController.selectedClickThroughMode = mode
-        // Also sync hover since click-through disables it
-        statusBarController.selectedHoverMode = preferences.hoverMode
         statusBarController.updateMenu()
     }
 
@@ -354,7 +328,6 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     private func syncStatusBar() {
         statusBarController.isPreviewEnabled = cameraService.state == .previewing
         statusBarController.availableCameras = cameraService.availableCameras
-        statusBarController.selectedCameraID = cameraService.selectedCameraID ?? preferences.selectedCameraID
         statusBarController.cameraState = cameraService.state
         statusBarController.updateMenu()
     }
