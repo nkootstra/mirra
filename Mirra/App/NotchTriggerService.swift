@@ -11,6 +11,8 @@ final class NotchTriggerService {
 
     private var pollTimer: Timer?
     private var isInsideNotch = false
+    private static let fastInterval: TimeInterval = 0.05   // 20Hz near menu bar
+    private static let slowInterval: TimeInterval = 0.25   // 4Hz when far away
 
     /// The notch region (in screen coordinates), or nil if no notch detected.
     private var notchRect: CGRect?
@@ -19,12 +21,7 @@ final class NotchTriggerService {
         notchRect = detectNotchRect()
         guard notchRect != nil else { return } // No notch, nothing to do
 
-        // Poll mouse location at ~20Hz — lightweight and works in sandbox
-        pollTimer = Timer.scheduledTimer(withTimeInterval: 0.05, repeats: true) { [weak self] _ in
-            Task { @MainActor in
-                self?.checkMouseLocation()
-            }
-        }
+        schedulePoll(interval: Self.slowInterval)
     }
 
     func stop() {
@@ -37,6 +34,15 @@ final class NotchTriggerService {
         guard let notchRect else { return }
 
         let location = NSEvent.mouseLocation
+
+        // Adaptive polling: speed up when cursor is near the top of the screen
+        let distanceFromTop = (notchRect.maxY - location.y)
+        let nearMenuBar = distanceFromTop < 100 && distanceFromTop > -10
+        let desiredInterval = nearMenuBar ? Self.fastInterval : Self.slowInterval
+        if let timer = pollTimer, abs(timer.timeInterval - desiredInterval) > 0.01 {
+            schedulePoll(interval: desiredInterval)
+        }
+
         let inside = notchRect.contains(location)
 
         if inside, !isInsideNotch {
@@ -45,6 +51,15 @@ final class NotchTriggerService {
         } else if !inside, isInsideNotch {
             isInsideNotch = false
             onNotchExited?()
+        }
+    }
+
+    private func schedulePoll(interval: TimeInterval) {
+        pollTimer?.invalidate()
+        pollTimer = Timer.scheduledTimer(withTimeInterval: interval, repeats: true) { [weak self] _ in
+            Task { @MainActor in
+                self?.checkMouseLocation()
+            }
         }
     }
 

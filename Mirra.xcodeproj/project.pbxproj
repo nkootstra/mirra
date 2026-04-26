@@ -10,7 +10,6 @@
 		A1000001 /* MirraApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000001 /* MirraApp.swift */; };
 		A1000002 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000002 /* AppDelegate.swift */; };
 		A1000003 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = A2000003 /* Assets.xcassets */; };
-		A1000004 /* CameraQuality.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000020 /* CameraQuality.swift */; };
 		A1000005 /* CameraDevice.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000021 /* CameraDevice.swift */; };
 		A1000006 /* StatusBarController.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000022 /* StatusBarController.swift */; };
 		A1000021 /* GlobalHotkeyService.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000050 /* GlobalHotkeyService.swift */; };
@@ -20,7 +19,6 @@
 		A1000023 /* HoverMode.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000052 /* HoverMode.swift */; };
 		A1000024 /* BorderRadius.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000053 /* BorderRadius.swift */; };
 		A1000025 /* ClickThroughMode.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000054 /* ClickThroughMode.swift */; };
-		A1000007 /* StatusMenuView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000023 /* StatusMenuView.swift */; };
 		A1000008 /* CameraState.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000024 /* CameraState.swift */; };
 		A1000009 /* CameraService.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000025 /* CameraService.swift */; };
 		A1000012 /* PreviewPlacement.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000030 /* PreviewPlacement.swift */; };
@@ -56,7 +54,6 @@
 		A2000006 /* Mirra.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Mirra.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		A2000010 /* MirraTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MirraTests.swift; sourceTree = "<group>"; };
 		A2000011 /* MirraTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = MirraTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
-		A2000020 /* CameraQuality.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CameraQuality.swift; sourceTree = "<group>"; };
 		A2000021 /* CameraDevice.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CameraDevice.swift; sourceTree = "<group>"; };
 		A2000022 /* StatusBarController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StatusBarController.swift; sourceTree = "<group>"; };
 		A2000050 /* GlobalHotkeyService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GlobalHotkeyService.swift; sourceTree = "<group>"; };
@@ -66,7 +63,6 @@
 		A2000052 /* HoverMode.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HoverMode.swift; sourceTree = "<group>"; };
 		A2000053 /* BorderRadius.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BorderRadius.swift; sourceTree = "<group>"; };
 		A2000054 /* ClickThroughMode.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClickThroughMode.swift; sourceTree = "<group>"; };
-		A2000023 /* StatusMenuView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StatusMenuView.swift; sourceTree = "<group>"; };
 		A2000024 /* CameraState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CameraState.swift; sourceTree = "<group>"; };
 		A2000025 /* CameraService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CameraService.swift; sourceTree = "<group>"; };
 		A2000012 /* CameraTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CameraTests.swift; sourceTree = "<group>"; };
@@ -167,7 +163,6 @@
 		A6000007 /* Camera */ = {
 			isa = PBXGroup;
 			children = (
-				A2000020 /* CameraQuality.swift */,
 				A2000021 /* CameraDevice.swift */,
 				A2000024 /* CameraState.swift */,
 				A2000025 /* CameraService.swift */,
@@ -178,7 +173,6 @@
 		A6000008 /* UI */ = {
 			isa = PBXGroup;
 			children = (
-				A2000023 /* StatusMenuView.swift */,
 				A2000040 /* PermissionRecoveryView.swift */,
 				A2000041 /* FailureStateView.swift */,
 				51C46F9EE3454F81B2DD3B60 /* NotchPreviewView.swift */,
@@ -303,13 +297,11 @@
 			files = (
 				A1000001 /* MirraApp.swift in Sources */,
 				A1000002 /* AppDelegate.swift in Sources */,
-				A1000004 /* CameraQuality.swift in Sources */,
 				A1000005 /* CameraDevice.swift in Sources */,
 				A1000006 /* StatusBarController.swift in Sources */,
 				A1000021 /* GlobalHotkeyService.swift in Sources */,
 				73A6655235CB4C7CB4E6F268 /* MicLevelMonitor.swift in Sources */,
 				80C680BDF8FF4294B4FCF58D /* NotchTriggerService.swift in Sources */,
-				A1000007 /* StatusMenuView.swift in Sources */,
 				A1000008 /* CameraState.swift in Sources */,
 				A1000009 /* CameraService.swift in Sources */,
 				A1000012 /* PreviewPlacement.swift in Sources */,
@@ -428,7 +420,7 @@
 					"$(inherited)",
 					"@executable_path/../Frameworks",
 				);
-				MARKETING_VERSION = 0.2.1;
+				MARKETING_VERSION = 0.2.2;
 				PRODUCT_BUNDLE_IDENTIFIER = com.mirra.app;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = YES;
@@ -452,7 +444,7 @@
 					"$(inherited)",
 					"@executable_path/../Frameworks",
 				);
-				MARKETING_VERSION = 0.2.1;
+				MARKETING_VERSION = 0.2.2;
 				PRODUCT_BUNDLE_IDENTIFIER = com.mirra.app;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = YES;
@@ -467,7 +459,7 @@
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				GENERATE_INFOPLIST_FILE = YES;
-				MARKETING_VERSION = 0.2.1;
+				MARKETING_VERSION = 0.2.2;
 				PRODUCT_BUNDLE_IDENTIFIER = com.mirra.app.tests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = NO;
@@ -483,7 +475,7 @@
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				GENERATE_INFOPLIST_FILE = YES;
-				MARKETING_VERSION = 0.2.1;
+				MARKETING_VERSION = 0.2.2;
 				PRODUCT_BUNDLE_IDENTIFIER = com.mirra.app.tests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = NO;
