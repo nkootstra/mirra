@@ -89,3 +89,33 @@ final class WindowPositionPersistenceTests: XCTestCase {
         XCTAssertNil(store.windowPosition)
     }
 }
+
+@MainActor
+final class ClickThroughModeTests: XCTestCase {
+    private func freshDefaults() -> UserDefaults {
+        let suiteName = "ClickThroughTests"
+        UserDefaults.standard.removePersistentDomain(forName: suiteName)
+        return UserDefaults(suiteName: suiteName)!
+    }
+
+    func testDefaultModeIsNormal() {
+        let store = PreferencesStore(defaults: freshDefaults())
+        XCTAssertEqual(store.clickThroughMode, .normal)
+    }
+
+    func testModePersistsAcrossInstances() {
+        let defaults = freshDefaults()
+        let store = PreferencesStore(defaults: defaults)
+        store.clickThroughMode = .clickThrough
+
+        let store2 = PreferencesStore(defaults: defaults)
+        XCTAssertEqual(store2.clickThroughMode, .clickThrough)
+    }
+
+    func testClickThroughDisablesHover() {
+        let store = PreferencesStore(defaults: freshDefaults())
+        store.hoverMode = .fade
+        store.clickThroughMode = .clickThrough
+        XCTAssertEqual(store.hoverMode, .none)
+    }
+}

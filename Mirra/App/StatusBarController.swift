@@ -17,6 +17,7 @@ final class StatusBarController {
     var selectedHoverOpacity: HoverOpacity = .thirty
     var selectedScreenNumber: Int?  // nil = main screen
     var isLaunchAtLogin: Bool = false
+    var selectedClickThroughMode: ClickThroughMode = .normal
     var cameraState: CameraState = .idle
 
     var onTogglePreview: (() -> Void)?
@@ -30,6 +31,7 @@ final class StatusBarController {
     var onSelectHoverOpacity: ((HoverOpacity) -> Void)?
     var onSelectScreen: ((Int?) -> Void)?
     var onToggleLaunchAtLogin: ((Bool) -> Void)?
+    var onSelectClickThroughMode: ((ClickThroughMode) -> Void)?
 
     func setup() {
         statusItem = NSStatusBar.system.statusItem(withLength: NSStatusItem.variableLength)
@@ -219,6 +221,12 @@ final class StatusBarController {
             hoverItem.submenu = hoverMenu
             behaviorMenu.addItem(hoverItem)
 
+            // Click Through
+            let clickThroughItem = NSMenuItem(title: "Click Through", action: #selector(toggleClickThrough), keyEquivalent: "")
+            clickThroughItem.target = self
+            clickThroughItem.state = selectedClickThroughMode == .clickThrough ? .on : .off
+            behaviorMenu.addItem(clickThroughItem)
+
             behaviorItem.submenu = behaviorMenu
             menu.addItem(behaviorItem)
         }
@@ -304,6 +312,11 @@ final class StatusBarController {
 
     @objc private func toggleLaunchAtLogin() {
         onToggleLaunchAtLogin?(!isLaunchAtLogin)
+    }
+
+    @objc private func toggleClickThrough() {
+        let newMode: ClickThroughMode = selectedClickThroughMode == .normal ? .clickThrough : .normal
+        onSelectClickThroughMode?(newMode)
     }
 
     @objc private func openCameraSettings() {

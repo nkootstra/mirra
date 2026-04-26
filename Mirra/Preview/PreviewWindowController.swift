@@ -178,6 +178,20 @@ final class PreviewWindowController {
         applyCornerRadius(to: hosting)
     }
 
+    func updateClickThrough(_ mode: ClickThroughMode) {
+        guard let panel else { return }
+        let isClickThrough = mode == .clickThrough
+        panel.ignoresMouseEvents = isClickThrough
+        panel.isMovableByWindowBackground = !isClickThrough
+        if isClickThrough {
+            removeMouseMonitor()
+            hoverTracker?.removeFromSuperview()
+            hoverTracker = nil
+        } else {
+            installHoverTracking()
+        }
+    }
+
     func updateShape(_ newShape: PreviewShape) {
         shape = newShape
         guard let panel else { return }
