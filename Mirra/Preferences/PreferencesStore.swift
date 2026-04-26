@@ -14,6 +14,7 @@ final class PreferencesStore {
         static let placement = "placement"
         static let sizePreset = "sizePreset"
         static let shape = "shape"
+        static let borderRadius = "borderRadius"
         static let launchAtLogin = "launchAtLogin"
         static let screenNumber = "screenNumber"
         static let hoverMode = "hoverMode"
@@ -48,6 +49,10 @@ final class PreferencesStore {
         didSet { defaults.set(shape.rawValue, forKey: Keys.shape) }
     }
 
+    var borderRadius: BorderRadius {
+        didSet { defaults.set(borderRadius.rawValue, forKey: Keys.borderRadius) }
+    }
+
     var launchAtLogin: Bool {
         didSet { defaults.set(launchAtLogin, forKey: Keys.launchAtLogin) }
     }
@@ -80,6 +85,7 @@ final class PreferencesStore {
         self.placement = PreviewPlacement(rawValue: defaults.string(forKey: Keys.placement) ?? "") ?? .bottomTrailing
         self.sizePreset = PreviewSizePreset(rawValue: defaults.string(forKey: Keys.sizePreset) ?? "") ?? .medium
         self.shape = PreviewShape(rawValue: defaults.string(forKey: Keys.shape) ?? "") ?? .rectangle
+        self.borderRadius = BorderRadius(rawValue: defaults.string(forKey: Keys.borderRadius) ?? "") ?? .medium
         self.launchAtLogin = defaults.bool(forKey: Keys.launchAtLogin)
         self.screenNumber = defaults.object(forKey: Keys.screenNumber) as? Int
         self.hoverMode = HoverMode(rawValue: defaults.string(forKey: Keys.hoverMode) ?? "") ?? .fade

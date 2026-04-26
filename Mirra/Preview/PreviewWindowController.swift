@@ -12,6 +12,7 @@ final class PreviewWindowController {
     var sizePreset: PreviewSizePreset = .medium
     var placement: PreviewPlacement = .bottomTrailing
     var shape: PreviewShape = .rectangle
+    var borderRadius: BorderRadius = .medium
     var hoverMode: HoverMode = .fade
     var hoverOpacity: HoverOpacity = .thirty
     var targetScreenNumber: Int?  // nil = main screen
@@ -153,14 +154,20 @@ final class PreviewWindowController {
 
     private func applyCornerRadius(to view: NSView) {
         view.wantsLayer = true
-        let maxRadius = min(view.bounds.width, view.bounds.height) / 2
-        let radius: CGFloat = switch shape {
-        case .circle: maxRadius
-        case .square: 10
-        case .rectangle: 10
+        let radius: CGFloat
+        if shape == .circle {
+            radius = min(view.bounds.width, view.bounds.height) / 2
+        } else {
+            radius = borderRadius.value
         }
         view.layer?.cornerRadius = radius
         view.layer?.masksToBounds = true
+    }
+
+    func updateBorderRadius(_ newRadius: BorderRadius) {
+        borderRadius = newRadius
+        guard let panel, let hosting = panel.contentView else { return }
+        applyCornerRadius(to: hosting)
     }
 
     func updateShape(_ newShape: PreviewShape) {

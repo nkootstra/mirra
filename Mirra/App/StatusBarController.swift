@@ -13,6 +13,7 @@ final class StatusBarController {
     var selectedPlacement: PreviewPlacement = .bottomTrailing
     var selectedSizePreset: PreviewSizePreset = .medium
     var selectedShape: PreviewShape = .rectangle
+    var selectedBorderRadius: BorderRadius = .medium
     var selectedHoverMode: HoverMode = .fade
     var selectedHoverOpacity: HoverOpacity = .thirty
     var selectedScreenNumber: Int?  // nil = main screen
@@ -26,6 +27,7 @@ final class StatusBarController {
     var onSelectPlacement: ((PreviewPlacement) -> Void)?
     var onSelectSizePreset: ((PreviewSizePreset) -> Void)?
     var onSelectShape: ((PreviewShape) -> Void)?
+    var onSelectBorderRadius: ((BorderRadius) -> Void)?
     var onSelectHoverMode: ((HoverMode) -> Void)?
     var onSelectHoverOpacity: ((HoverOpacity) -> Void)?
     var onSelectScreen: ((Int?) -> Void)?
@@ -84,15 +86,11 @@ final class StatusBarController {
                 }
             }
 
-            menu.addItem(.separator())
-
             // Mirror toggle
             let mirrorItem = NSMenuItem(title: "Mirror", action: #selector(toggleMirror), keyEquivalent: "")
             mirrorItem.target = self
             mirrorItem.state = isMirrorEnabled ? .on : .off
             menu.addItem(mirrorItem)
-
-            menu.addItem(.separator())
 
             // Quality submenu
             let qualityItem = NSMenuItem(title: "Quality", action: nil, keyEquivalent: "")
@@ -107,20 +105,13 @@ final class StatusBarController {
             qualityItem.submenu = qualityMenu
             menu.addItem(qualityItem)
 
-            // Size submenu
-            let sizeItem = NSMenuItem(title: "Size", action: nil, keyEquivalent: "")
-            let sizeMenu = NSMenu()
-            for preset in PreviewSizePreset.allCases {
-                let item = NSMenuItem(title: preset.displayName, action: #selector(selectSizePreset(_:)), keyEquivalent: "")
-                item.target = self
-                item.representedObject = preset.rawValue
-                item.state = preset == selectedSizePreset ? .on : .off
-                sizeMenu.addItem(item)
-            }
-            sizeItem.submenu = sizeMenu
-            menu.addItem(sizeItem)
+            menu.addItem(.separator())
 
-            // Shape submenu
+            // Appearance submenu
+            let appearanceItem = NSMenuItem(title: "Appearance", action: nil, keyEquivalent: "")
+            let appearanceMenu = NSMenu()
+
+            // Shape
             let shapeItem = NSMenuItem(title: "Shape", action: nil, keyEquivalent: "")
             let shapeMenu = NSMenu()
             for shape in PreviewShape.allCases {
@@ -131,9 +122,87 @@ final class StatusBarController {
                 shapeMenu.addItem(item)
             }
             shapeItem.submenu = shapeMenu
-            menu.addItem(shapeItem)
+            appearanceMenu.addItem(shapeItem)
 
-            // Hover behavior submenu
+            // Size
+            let sizeItem = NSMenuItem(title: "Size", action: nil, keyEquivalent: "")
+            let sizeMenu = NSMenu()
+            for preset in PreviewSizePreset.allCases {
+                let item = NSMenuItem(title: preset.displayName, action: #selector(selectSizePreset(_:)), keyEquivalent: "")
+                item.target = self
+                item.representedObject = preset.rawValue
+                item.state = preset == selectedSizePreset ? .on : .off
+                sizeMenu.addItem(item)
+            }
+            sizeItem.submenu = sizeMenu
+            appearanceMenu.addItem(sizeItem)
+
+            // Border radius (disabled for circle)
+            let radiusItem = NSMenuItem(title: "Border Radius", action: nil, keyEquivalent: "")
+            if selectedShape == .circle {
+                radiusItem.isEnabled = false
+            } else {
+                let radiusMenu = NSMenu()
+                for radius in BorderRadius.allCases {
+                    let item = NSMenuItem(title: radius.displayName, action: #selector(selectBorderRadius(_:)), keyEquivalent: "")
+                    item.target = self
+                    item.representedObject = radius.rawValue
+                    item.state = radius == selectedBorderRadius ? .on : .off
+                    radiusMenu.addItem(item)
+                }
+                radiusItem.submenu = radiusMenu
+            }
+            appearanceMenu.addItem(radiusItem)
+
+            appearanceItem.submenu = appearanceMenu
+            menu.addItem(appearanceItem)
+
+            // Placement submenu
+            let placementItem = NSMenuItem(title: "Placement", action: nil, keyEquivalent: "")
+            let placementMenu = NSMenu()
+
+            // Position
+            let posItem = NSMenuItem(title: "Position", action: nil, keyEquivalent: "")
+            let posMenu = NSMenu()
+            for placement in PreviewPlacement.allCases {
+                let item = NSMenuItem(title: placement.displayName, action: #selector(selectPlacement(_:)), keyEquivalent: "")
+                item.target = self
+                item.representedObject = placement.rawValue
+                item.state = placement == selectedPlacement ? .on : .off
+                posMenu.addItem(item)
+            }
+            posItem.submenu = posMenu
+            placementMenu.addItem(posItem)
+
+            // Display (only when multiple screens)
+            let screens = NSScreen.screens
+            if screens.count > 1 {
+                let displayItem = NSMenuItem(title: "Display", action: nil, keyEquivalent: "")
+                let displayMenu = NSMenu()
+
+                for (index, screen) in screens.enumerated() {
+                    let screenNumber = screen.deviceDescription[NSDeviceDescriptionKey("NSScreenNumber")] as? Int
+                    let name = screen.localizedName
+                    let label = index == 0 ? "\(name) (Main)" : name
+                    let item = NSMenuItem(title: label, action: #selector(selectScreen(_:)), keyEquivalent: "")
+                    item.target = self
+                    item.representedObject = screenNumber
+                    item.state = screenNumber == selectedScreenNumber ? .on : .off
+                    displayMenu.addItem(item)
+                }
+
+                displayItem.submenu = displayMenu
+                placementMenu.addItem(displayItem)
+            }
+
+            placementItem.submenu = placementMenu
+            menu.addItem(placementItem)
+
+            // Behavior submenu
+            let behaviorItem = NSMenuItem(title: "Behavior", action: nil, keyEquivalent: "")
+            let behaviorMenu = NSMenu()
+
+            // On Hover
             let hoverItem = NSMenuItem(title: "On Hover", action: nil, keyEquivalent: "")
             let hoverMenu = NSMenu()
             for mode in HoverMode.allCases {
@@ -161,41 +230,10 @@ final class StatusBarController {
                 }
             }
             hoverItem.submenu = hoverMenu
-            menu.addItem(hoverItem)
+            behaviorMenu.addItem(hoverItem)
 
-            // Position submenu
-            let posItem = NSMenuItem(title: "Position", action: nil, keyEquivalent: "")
-            let posMenu = NSMenu()
-            for placement in PreviewPlacement.allCases {
-                let item = NSMenuItem(title: placement.displayName, action: #selector(selectPlacement(_:)), keyEquivalent: "")
-                item.target = self
-                item.representedObject = placement.rawValue
-                item.state = placement == selectedPlacement ? .on : .off
-                posMenu.addItem(item)
-            }
-            posItem.submenu = posMenu
-            menu.addItem(posItem)
-
-            // Display submenu (only show when multiple screens)
-            let screens = NSScreen.screens
-            if screens.count > 1 {
-                let displayItem = NSMenuItem(title: "Display", action: nil, keyEquivalent: "")
-                let displayMenu = NSMenu()
-
-                for (index, screen) in screens.enumerated() {
-                    let screenNumber = screen.deviceDescription[NSDeviceDescriptionKey("NSScreenNumber")] as? Int
-                    let name = screen.localizedName
-                    let label = index == 0 ? "\(name) (Main)" : name
-                    let item = NSMenuItem(title: label, action: #selector(selectScreen(_:)), keyEquivalent: "")
-                    item.target = self
-                    item.representedObject = screenNumber
-                    item.state = screenNumber == selectedScreenNumber ? .on : .off
-                    displayMenu.addItem(item)
-                }
-
-                displayItem.submenu = displayMenu
-                menu.addItem(displayItem)
-            }
+            behaviorItem.submenu = behaviorMenu
+            menu.addItem(behaviorItem)
         }
 
         menu.addItem(.separator())
@@ -252,6 +290,12 @@ final class StatusBarController {
         guard let raw = sender.representedObject as? String,
               let shape = PreviewShape(rawValue: raw) else { return }
         onSelectShape?(shape)
+    }
+
+    @objc private func selectBorderRadius(_ sender: NSMenuItem) {
+        guard let raw = sender.representedObject as? String,
+              let radius = BorderRadius(rawValue: raw) else { return }
+        onSelectBorderRadius?(radius)
     }
 
     @objc private func selectHoverMode(_ sender: NSMenuItem) {

@@ -18,6 +18,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         previewWindowController.sizePreset = preferences.sizePreset
         previewWindowController.placement = preferences.placement
         previewWindowController.shape = preferences.shape
+        previewWindowController.borderRadius = preferences.borderRadius
         previewWindowController.hoverMode = preferences.hoverMode
         previewWindowController.hoverOpacity = preferences.hoverOpacity
         previewWindowController.targetScreenNumber = preferences.screenNumber
@@ -29,6 +30,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         statusBarController.selectedPlacement = preferences.placement
         statusBarController.selectedSizePreset = preferences.sizePreset
         statusBarController.selectedShape = preferences.shape
+        statusBarController.selectedBorderRadius = preferences.borderRadius
         statusBarController.selectedHoverMode = preferences.hoverMode
         statusBarController.selectedHoverOpacity = preferences.hoverOpacity
         statusBarController.selectedScreenNumber = preferences.screenNumber
@@ -42,6 +44,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         statusBarController.onSelectPlacement = { [weak self] placement in self?.setPlacement(placement) }
         statusBarController.onSelectSizePreset = { [weak self] preset in self?.setSizePreset(preset) }
         statusBarController.onSelectShape = { [weak self] shape in self?.setShape(shape) }
+        statusBarController.onSelectBorderRadius = { [weak self] radius in self?.setBorderRadius(radius) }
         statusBarController.onSelectHoverMode = { [weak self] mode in self?.setHoverMode(mode) }
         statusBarController.onSelectHoverOpacity = { [weak self] opacity in self?.setHoverOpacity(opacity) }
         statusBarController.onSelectScreen = { [weak self] num in self?.setScreen(num) }
@@ -164,6 +167,13 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         preferences.shape = shape
         previewWindowController.updateShape(shape)
         statusBarController.selectedShape = shape
+        statusBarController.updateMenu()
+    }
+
+    private func setBorderRadius(_ radius: BorderRadius) {
+        preferences.borderRadius = radius
+        previewWindowController.updateBorderRadius(radius)
+        statusBarController.selectedBorderRadius = radius
         statusBarController.updateMenu()
     }
 
