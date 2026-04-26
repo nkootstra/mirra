@@ -16,7 +16,6 @@ final class CameraService {
     private var discoverySession: AVCaptureDevice.DiscoverySession?
 
     var selectedCameraID: String?
-    var quality: CameraQuality = .medium
     var onStateChange: (() -> Void)?
 
     // MARK: - Public
@@ -61,7 +60,7 @@ final class CameraService {
         }
 
         let session = AVCaptureSession()
-        session.sessionPreset = quality.capturePreset
+        session.sessionPreset = .photo
 
         do {
             let input = try AVCaptureDeviceInput(device: device)
@@ -101,15 +100,6 @@ final class CameraService {
         if state == .previewing {
             stopPreview()
             startPreview()
-        }
-    }
-
-    func updateQuality(_ newQuality: CameraQuality) {
-        quality = newQuality
-        if state == .previewing, let session = captureSession {
-            session.beginConfiguration()
-            session.sessionPreset = newQuality.capturePreset
-            session.commitConfiguration()
         }
     }
 

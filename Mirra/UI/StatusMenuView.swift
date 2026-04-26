@@ -3,7 +3,6 @@ import SwiftUI
 struct StatusMenuView: View {
     let isPreviewEnabled: Bool
     let isMirrorEnabled: Bool
-    let selectedQuality: CameraQuality
     let selectedCameraID: String?
     let cameras: [CameraDevice]
     let cameraState: CameraState
@@ -14,7 +13,6 @@ struct StatusMenuView: View {
     let onTogglePreview: () -> Void
     let onSelectCamera: (String) -> Void
     let onToggleMirror: (Bool) -> Void
-    let onSelectQuality: (CameraQuality) -> Void
     let onSelectPlacement: (PreviewPlacement) -> Void
     let onSelectSizePreset: (PreviewSizePreset) -> Void
     let onToggleLaunchAtLogin: (Bool) -> Void
@@ -62,17 +60,6 @@ struct StatusMenuView: View {
                     CheckmarkRow("Mirror", isSelected: isMirrorEnabled)
                 }
                 .buttonStyle(MenuItemButtonStyle())
-
-                Divider().padding(.vertical, 4)
-
-                // Quality picker
-                SectionHeader("Quality")
-                ForEach(CameraQuality.allCases) { quality in
-                    Button(action: { onSelectQuality(quality) }) {
-                        CheckmarkRow(quality.displayName, isSelected: quality == selectedQuality)
-                    }
-                    .buttonStyle(MenuItemButtonStyle())
-                }
 
                 Divider().padding(.vertical, 4)
 

@@ -10,7 +10,6 @@ final class PreferencesStore {
         static let selectedCameraID = "selectedCameraID"
         static let isPreviewEnabled = "isPreviewEnabled"
         static let isMirrorEnabled = "isMirrorEnabled"
-        static let quality = "quality"
         static let placement = "placement"
         static let sizePreset = "sizePreset"
         static let shape = "shape"
@@ -31,10 +30,6 @@ final class PreferencesStore {
 
     var isMirrorEnabled: Bool {
         didSet { defaults.set(isMirrorEnabled, forKey: Keys.isMirrorEnabled) }
-    }
-
-    var quality: CameraQuality {
-        didSet { defaults.set(quality.rawValue, forKey: Keys.quality) }
     }
 
     var placement: PreviewPlacement {
@@ -81,7 +76,6 @@ final class PreferencesStore {
         self.isMirrorEnabled = defaults.object(forKey: Keys.isMirrorEnabled) == nil
             ? true  // default to mirrored
             : defaults.bool(forKey: Keys.isMirrorEnabled)
-        self.quality = CameraQuality(rawValue: defaults.string(forKey: Keys.quality) ?? "") ?? .medium
         self.placement = PreviewPlacement(rawValue: defaults.string(forKey: Keys.placement) ?? "") ?? .bottomTrailing
         self.sizePreset = PreviewSizePreset(rawValue: defaults.string(forKey: Keys.sizePreset) ?? "") ?? .medium
         self.shape = PreviewShape(rawValue: defaults.string(forKey: Keys.shape) ?? "") ?? .rectangle

@@ -14,7 +14,6 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     func applicationDidFinishLaunching(_ notification: Notification) {
         // Apply saved preferences to services
         cameraService.selectedCameraID = preferences.selectedCameraID
-        cameraService.quality = preferences.quality
         previewWindowController.sizePreset = preferences.sizePreset
         previewWindowController.placement = preferences.placement
         previewWindowController.shape = preferences.shape
@@ -25,7 +24,6 @@ class AppDelegate: NSObject, NSApplicationDelegate {
 
         // Set up status bar
         statusBarController.isMirrorEnabled = preferences.isMirrorEnabled
-        statusBarController.selectedQuality = preferences.quality
         statusBarController.selectedCameraID = preferences.selectedCameraID
         statusBarController.selectedPlacement = preferences.placement
         statusBarController.selectedSizePreset = preferences.sizePreset
@@ -40,7 +38,6 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         statusBarController.onTogglePreview = { [weak self] in self?.togglePreview() }
         statusBarController.onSelectCamera = { [weak self] id in self?.selectCamera(id) }
         statusBarController.onToggleMirror = { [weak self] enabled in self?.setMirror(enabled) }
-        statusBarController.onSelectQuality = { [weak self] quality in self?.setQuality(quality) }
         statusBarController.onSelectPlacement = { [weak self] placement in self?.setPlacement(placement) }
         statusBarController.onSelectSizePreset = { [weak self] preset in self?.setSizePreset(preset) }
         statusBarController.onSelectShape = { [weak self] shape in self?.setShape(shape) }
@@ -132,13 +129,6 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         if let session = cameraService.previewSession {
             previewWindowController.updateMirror(enabled, session: session)
         }
-        statusBarController.updateMenu()
-    }
-
-    private func setQuality(_ quality: CameraQuality) {
-        preferences.quality = quality
-        cameraService.updateQuality(quality)
-        statusBarController.selectedQuality = quality
         statusBarController.updateMenu()
     }
 

@@ -7,7 +7,6 @@ final class StatusBarController {
 
     var isPreviewEnabled: Bool = false
     var isMirrorEnabled: Bool = true
-    var selectedQuality: CameraQuality = .medium
     var selectedCameraID: String?
     var availableCameras: [CameraDevice] = []
     var selectedPlacement: PreviewPlacement = .bottomTrailing
@@ -23,7 +22,6 @@ final class StatusBarController {
     var onTogglePreview: (() -> Void)?
     var onSelectCamera: ((String) -> Void)?
     var onToggleMirror: ((Bool) -> Void)?
-    var onSelectQuality: ((CameraQuality) -> Void)?
     var onSelectPlacement: ((PreviewPlacement) -> Void)?
     var onSelectSizePreset: ((PreviewSizePreset) -> Void)?
     var onSelectShape: ((PreviewShape) -> Void)?
@@ -91,19 +89,6 @@ final class StatusBarController {
             mirrorItem.target = self
             mirrorItem.state = isMirrorEnabled ? .on : .off
             menu.addItem(mirrorItem)
-
-            // Quality submenu
-            let qualityItem = NSMenuItem(title: "Quality", action: nil, keyEquivalent: "")
-            let qualityMenu = NSMenu()
-            for quality in CameraQuality.allCases {
-                let item = NSMenuItem(title: quality.displayName, action: #selector(selectQuality(_:)), keyEquivalent: "")
-                item.target = self
-                item.representedObject = quality.rawValue
-                item.state = quality == selectedQuality ? .on : .off
-                qualityMenu.addItem(item)
-            }
-            qualityItem.submenu = qualityMenu
-            menu.addItem(qualityItem)
 
             menu.addItem(.separator())
 
@@ -272,12 +257,6 @@ final class StatusBarController {
 
     @objc private func toggleMirror() {
         onToggleMirror?(!isMirrorEnabled)
-    }
-
-    @objc private func selectQuality(_ sender: NSMenuItem) {
-        guard let raw = sender.representedObject as? String,
-              let quality = CameraQuality(rawValue: raw) else { return }
-        onSelectQuality?(quality)
     }
 
     @objc private func selectSizePreset(_ sender: NSMenuItem) {
