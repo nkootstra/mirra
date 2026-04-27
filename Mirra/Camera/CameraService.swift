@@ -51,6 +51,11 @@ final class CameraService {
                 return
             }
             if state == .previewing { return }
+            // Allow starting from paused (treats as resume)
+            if state == .paused {
+                resumePreview()
+                return
+            }
             return
         }
 
@@ -92,16 +97,39 @@ final class CameraService {
         captureSession = nil
         removeDeviceObservers()
 
-        if state == .previewing {
+        if state == .previewing || state == .paused {
             state = availableCameras.isEmpty ? .noCameraAvailable : .ready
         }
     }
 
+    /// Pause the preview: keep the capture session alive for instant resume.
+    /// The window should be hidden by the caller. The camera LED stays on.
+    func pausePreview() {
+        guard state == .previewing else { return }
+        state = .paused
+        // Session and device observers stay alive
+    }
+
+    /// Resume from paused state. Instant because the session is still running.
+    func resumePreview() {
+        guard state == .paused, captureSession != nil else {
+            // Session was lost (e.g. device disconnected while paused) — full start
+            if state == .paused {
+                state = availableCameras.isEmpty ? .noCameraAvailable : .ready
+            }
+            startPreview()
+            return
+        }
+        state = .previewing
+    }
+
     func switchCamera(to cameraID: String) {
         selectedCameraID = cameraID
-        if state == .previewing {
+        if state == .previewing || state == .paused {
+            let wasPaused = state == .paused
             stopPreview()
             startPreview()
+            if wasPaused { pausePreview() }
         }
     }
 
@@ -170,13 +198,14 @@ final class CameraService {
 
     @objc private func devicesChanged(_ notification: Notification) {
         Task { @MainActor in
-            let wasPreviewing = state == .previewing
+            let wasActive = state == .previewing || state == .paused
+            let wasPaused = state == .paused
             refreshCameraList()
 
-            if wasPreviewing && state == .noCameraAvailable {
+            if wasActive && state == .noCameraAvailable {
                 stopPreview()
                 state = .disconnected
-            } else if wasPreviewing,
+            } else if wasActive,
                       let currentDevice = currentInput?.device,
                       !currentDevice.isConnected {
                 stopPreview()
@@ -184,6 +213,7 @@ final class CameraService {
                 // Try to recover with another camera
                 if !availableCameras.isEmpty {
                     startPreview()
+                    if wasPaused { pausePreview() }
                 }
             }
         }
