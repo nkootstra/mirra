@@ -209,6 +209,13 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     private func showNotchPreview() {
         guard notchPanel == nil else { return }
 
+        isNotchPreviewActive = true
+
+        // Hide the floating preview if it's visible
+        if previewWindowController.isVisible {
+            previewWindowController.hide()
+        }
+
         // Start camera if not already running
         var session = cameraService.previewSession
         if session == nil {
@@ -216,8 +223,6 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             session = cameraService.previewSession
         }
         guard let session else { return }
-
-        isNotchPreviewActive = true
 
         // Start mic monitoring
         micCheck.startMonitoring()
@@ -282,6 +287,9 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         // If the main preview wasn't enabled, stop the camera
         if !preferences.isPreviewEnabled {
             cameraService.stopPreview()
+        } else if let session = cameraService.previewSession {
+            // Restore the floating preview
+            previewWindowController.show(session: session, isMirrored: preferences.isMirrorEnabled)
         }
     }
 
