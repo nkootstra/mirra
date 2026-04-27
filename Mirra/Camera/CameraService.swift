@@ -17,6 +17,8 @@ final class CameraService {
     private let sessionQueue = DispatchQueue(label: "com.mirra.captureSession")
 
     var selectedCameraID: String?
+    /// The camera the user explicitly chose. Used to auto-restore after reconnection.
+    var preferredCameraID: String?
     var onStateChange: (() -> Void)?
 
     // MARK: - Public
@@ -125,6 +127,7 @@ final class CameraService {
 
     func switchCamera(to cameraID: String) {
         selectedCameraID = cameraID
+        preferredCameraID = cameraID
         if state == .previewing || state == .paused {
             let wasPaused = state == .paused
             stopPreview()
@@ -177,6 +180,12 @@ final class CameraService {
             state = .ready
         }
 
+        // If preferred camera is back, switch to it
+        if let preferred = preferredCameraID,
+           availableCameras.contains(where: { $0.id == preferred }) {
+            selectedCameraID = preferred
+        }
+
         // If selected camera is gone, fall back to first available
         if let selected = selectedCameraID,
            !availableCameras.contains(where: { $0.id == selected }) {
@@ -200,6 +209,7 @@ final class CameraService {
         Task { @MainActor in
             let wasActive = state == .previewing || state == .paused
             let wasPaused = state == .paused
+            let previousCameraID = currentInput?.device.uniqueID
             refreshCameraList()
 
             if wasActive && state == .noCameraAvailable {
@@ -215,6 +225,14 @@ final class CameraService {
                     startPreview()
                     if wasPaused { pausePreview() }
                 }
+            } else if wasActive,
+                      let preferred = preferredCameraID,
+                      preferred != previousCameraID,
+                      selectedCameraID == preferred {
+                // Preferred camera just came back — switch to it
+                stopPreview()
+                startPreview()
+                if wasPaused { pausePreview() }
             }
         }
     }

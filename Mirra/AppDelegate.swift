@@ -20,6 +20,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     func applicationDidFinishLaunching(_ notification: Notification) {
         // Apply saved preferences to services
         cameraService.selectedCameraID = preferences.selectedCameraID
+        cameraService.preferredCameraID = preferences.selectedCameraID
         previewWindowController.sizePreset = preferences.sizePreset
         previewWindowController.placement = preferences.placement
         previewWindowController.shape = preferences.shape
