@@ -96,7 +96,6 @@ extension MicLevelService: AVCaptureAudioDataOutputSampleBufferDelegate {
         let asbd = CMAudioFormatDescriptionGetStreamBasicDescription(format)
         guard let desc = asbd?.pointee else { return nil }
 
-        // Only handle linear PCM
         guard desc.mFormatID == kAudioFormatLinearPCM else { return nil }
 
         guard let blockBuffer = CMSampleBufferGetDataBuffer(buffer) else { return nil }
@@ -109,18 +108,36 @@ extension MicLevelService: AVCaptureAudioDataOutputSampleBufferDelegate {
         )
         guard status == noErr, let data = dataPointer else { return nil }
 
-        let sampleCount = totalLength / MemoryLayout<Int16>.size
-        guard sampleCount > 0 else { return nil }
+        let isFloat = desc.mFormatFlags & kAudioFormatFlagIsFloat != 0
+        let bytesPerSample = Int(desc.mBitsPerChannel / 8)
+        let channelCount = Int(desc.mChannelsPerFrame)
+        let bytesPerFrame = bytesPerSample * channelCount
+        let frameCount = totalLength / bytesPerFrame
+        guard frameCount > 0 else { return nil }
 
-        let samples = UnsafeRawPointer(data).bindMemory(to: Int16.self, capacity: sampleCount)
         var sum: Float = 0
-        for i in 0..<sampleCount {
-            let sample = Float(samples[i]) / Float(Int16.max)
-            sum += sample * sample
-        }
-        let rms = sqrt(sum / Float(sampleCount))
+        let raw = UnsafeRawPointer(data)
 
-        // Convert to dB
+        if isFloat && bytesPerSample == 4 {
+            // 32-bit float (most common from AVCaptureAudioDataOutput)
+            let samples = raw.bindMemory(to: Float.self, capacity: frameCount * channelCount)
+            for i in 0..<(frameCount * channelCount) {
+                let s = samples[i]
+                sum += s * s
+            }
+        } else if !isFloat && bytesPerSample == 2 {
+            // 16-bit signed integer
+            let samples = raw.bindMemory(to: Int16.self, capacity: frameCount * channelCount)
+            for i in 0..<(frameCount * channelCount) {
+                let s = Float(samples[i]) / Float(Int16.max)
+                sum += s * s
+            }
+        } else {
+            return nil
+        }
+
+        let rms = sqrt(sum / Float(frameCount * channelCount))
+
         if rms > 0 {
             return 20 * log10(rms)
         }
