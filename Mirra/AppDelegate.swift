@@ -31,6 +31,9 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         previewWindowController.onWindowPositionChanged = { [weak self] point in
             self?.preferences.windowPosition = point
         }
+        previewWindowController.onCloseRequested = { [weak self] in
+            self?.togglePreview()
+        }
 
         // Wire callbacks
         statusBarController.onTogglePreview = { [weak self] in self?.togglePreview() }
