@@ -7,6 +7,7 @@ final class PreviewWindowController {
     private var panel: NSPanel?
     private var hostingView: NSHostingView<AnyView>?
     private var hoverTracker: HoverTrackingView?
+    private var closeButton: NSButton?
     private var mouseMonitor: Any?
 
     var sizePreset: PreviewSizePreset = .medium
@@ -17,6 +18,7 @@ final class PreviewWindowController {
     var hoverOpacity: HoverOpacity = .thirty
     var targetScreenNumber: Int?  // nil = main screen
     var onWindowPositionChanged: ((CGPoint) -> Void)?
+    var onCloseRequested: (() -> Void)?
     var savedWindowPosition: CGPoint?  // set from preferences on launch
 
     var isVisible: Bool { panel?.isVisible ?? false }
@@ -228,27 +230,33 @@ final class PreviewWindowController {
     private func installHoverTracking() {
         guard let panel, let contentView = panel.contentView else { return }
         hoverTracker?.removeFromSuperview()
+        removeCloseButton()
         removeMouseMonitor()
         let tracker = HoverTrackingView(frame: contentView.bounds)
         tracker.autoresizingMask = [.width, .height]
         tracker.onMouseEntered = { [weak self] in
             guard let self else { return }
             switch self.hoverMode {
-            case .none: break
-            case .fade: self.animateOpacity(to: self.hoverOpacity.value)
+            case .none: self.showCloseButton()
+            case .fade:
+                self.animateOpacity(to: self.hoverOpacity.value)
+                self.showCloseButton()
             case .hide: self.enterHideMode()
             }
         }
         tracker.onMouseExited = { [weak self] in
             guard let self else { return }
             switch self.hoverMode {
-            case .none: break
-            case .fade: self.animateOpacity(to: 1.0)
+            case .none: self.hideCloseButton()
+            case .fade:
+                self.animateOpacity(to: 1.0)
+                self.hideCloseButton()
             case .hide: break  // handled by mouse monitor
             }
         }
         contentView.addSubview(tracker)
         hoverTracker = tracker
+        installCloseButton()
     }
 
     private func enterHideMode() {
@@ -287,6 +295,66 @@ final class PreviewWindowController {
             ctx.duration = 0.2
             panel.animator().alphaValue = alpha
         }
+    }
+
+    // MARK: - Close button
+
+    private func installCloseButton() {
+        guard let panel, let contentView = panel.contentView else { return }
+        removeCloseButton()
+
+        let button = NSButton(frame: .zero)
+        button.bezelStyle = .inline
+        button.isBordered = false
+        button.image = NSImage(systemSymbolName: "xmark.circle.fill", accessibilityDescription: "Close preview")
+        button.imageScaling = .scaleProportionallyUpOrDown
+        button.contentTintColor = .white
+        button.wantsLayer = true
+        button.layer?.shadowColor = NSColor.black.cgColor
+        button.layer?.shadowOpacity = 0.5
+        button.layer?.shadowOffset = .zero
+        button.layer?.shadowRadius = 2
+        button.alphaValue = 0
+        button.target = self
+        button.action = #selector(closeButtonClicked)
+
+        let buttonSize: CGFloat = 20
+        let inset: CGFloat = 6
+        button.frame = NSRect(
+            x: contentView.bounds.maxX - buttonSize - inset,
+            y: contentView.bounds.maxY - buttonSize - inset,
+            width: buttonSize,
+            height: buttonSize
+        )
+        button.autoresizingMask = [.minXMargin, .minYMargin]
+
+        contentView.addSubview(button, positioned: .above, relativeTo: nil)
+        closeButton = button
+    }
+
+    private func removeCloseButton() {
+        closeButton?.removeFromSuperview()
+        closeButton = nil
+    }
+
+    private func showCloseButton() {
+        guard let closeButton else { return }
+        NSAnimationContext.runAnimationGroup { ctx in
+            ctx.duration = 0.15
+            closeButton.animator().alphaValue = 0.7
+        }
+    }
+
+    private func hideCloseButton() {
+        guard let closeButton else { return }
+        NSAnimationContext.runAnimationGroup { ctx in
+            ctx.duration = 0.15
+            closeButton.animator().alphaValue = 0
+        }
+    }
+
+    @objc private func closeButtonClicked() {
+        onCloseRequested?()
     }
 }
 
