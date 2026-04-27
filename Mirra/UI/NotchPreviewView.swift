@@ -2,12 +2,12 @@ import AVFoundation
 import SwiftUI
 
 /// The view shown when the cursor enters the notch region.
-/// Shows a camera preview with a mic status indicator overlaid at the bottom.
+/// Shows a camera preview with a live mic level indicator overlaid at the bottom.
 /// The entire view including the upward arrow is filled with the camera feed.
 struct NotchPreviewView: View {
     let session: AVCaptureSession
     var isMirrored: Bool = false
-    @ObservedObject var micCheck: MicCheckService
+    @ObservedObject var micLevel: MicLevelService
 
     static let arrowHeight: CGFloat = 12
     static let cornerRadius: CGFloat = 12
@@ -16,15 +16,20 @@ struct NotchPreviewView: View {
         ZStack(alignment: .bottom) {
             CameraPreviewView(session: session, isMirrored: isMirrored)
 
-            // Mic status overlay
+            // Mic level overlay
             HStack(spacing: 6) {
-                Image(systemName: micCheck.isAvailable ? "mic.fill" : "mic.slash.fill")
+                Image(systemName: micLevel.isAvailable ? "mic.fill" : "mic.slash.fill")
                     .font(.system(size: 11))
                     .foregroundStyle(.white)
 
-                Text(micCheck.isAvailable ? "Mic OK" : "No Mic")
-                    .font(.system(size: 10, weight: .medium))
-                    .foregroundStyle(.white)
+                if micLevel.isAvailable {
+                    MicLevelBar(level: micLevel.level)
+                        .frame(width: 60, height: 6)
+                } else {
+                    Text("No Mic")
+                        .font(.system(size: 10, weight: .medium))
+                        .foregroundStyle(.white)
+                }
             }
             .padding(.horizontal, 10)
             .padding(.vertical, 6)
@@ -35,6 +40,31 @@ struct NotchPreviewView: View {
             .padding(6)
         }
         .clipShape(BubbleShape(arrowHeight: Self.arrowHeight, cornerRadius: Self.cornerRadius))
+    }
+}
+
+/// A simple horizontal bar that fills based on mic level (0–1).
+struct MicLevelBar: View {
+    var level: Float
+
+    var body: some View {
+        GeometryReader { geo in
+            ZStack(alignment: .leading) {
+                RoundedRectangle(cornerRadius: 3)
+                    .fill(.white.opacity(0.2))
+
+                RoundedRectangle(cornerRadius: 3)
+                    .fill(barColor)
+                    .frame(width: max(0, geo.size.width * CGFloat(level)))
+                    .animation(.linear(duration: 0.05), value: level)
+            }
+        }
+    }
+
+    private var barColor: Color {
+        if level > 0.8 { return .red }
+        if level > 0.5 { return .yellow }
+        return .green
     }
 }
 
