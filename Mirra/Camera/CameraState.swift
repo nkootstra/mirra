@@ -8,5 +8,6 @@ enum CameraState: Equatable, Sendable {
     case cameraSuspended
     case disconnected
     case ready
+    case paused       // session alive but window hidden — instant resume
     case previewing
 }

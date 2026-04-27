@@ -113,9 +113,16 @@ class AppDelegate: NSObject, NSApplicationDelegate {
 
     private func togglePreview() {
         if cameraService.state == .previewing {
-            cameraService.stopPreview()
+            cameraService.pausePreview()
             previewWindowController.hide()
             preferences.isPreviewEnabled = false
+            syncStatusBar()
+        } else if cameraService.state == .paused {
+            cameraService.resumePreview()
+            if let session = cameraService.previewSession {
+                previewWindowController.show(session: session, isMirrored: preferences.isMirrorEnabled)
+            }
+            preferences.isPreviewEnabled = true
             syncStatusBar()
         } else if cameraService.state == .unauthorized {
             // Menu already shows permission recovery
@@ -318,6 +325,9 @@ class AppDelegate: NSObject, NSApplicationDelegate {
                 previewWindowController.show(session: session, isMirrored: preferences.isMirrorEnabled)
             }
             statusBarController.updateIcon(previewActive: !isNotchPreviewActive)
+        case .paused:
+            // Window is hidden but session is alive — show icon as inactive
+            statusBarController.updateIcon(previewActive: false)
         case .noCameraAvailable, .cameraInUse, .cameraSuspended, .disconnected:
             statusBarController.updateIcon(previewActive: false)
         case .unauthorized:
@@ -349,7 +359,8 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     }
 
     @objc private func screensDidSleep(_ notification: Notification) {
-        wasPreviewingBeforeSleep = cameraService.state == .previewing
+        let state = cameraService.state
+        wasPreviewingBeforeSleep = state == .previewing || state == .paused
         if wasPreviewingBeforeSleep {
             cameraService.stopPreview()
             previewWindowController.hide()
