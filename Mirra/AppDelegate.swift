@@ -224,9 +224,6 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         }
         guard let session else { return }
 
-        // Start mic monitoring
-        micCheck.startMonitoring()
-
         guard let builtInScreen = NSScreen.screens.first(where: { $0.auxiliaryTopLeftArea != nil }),
               let leftArea = builtInScreen.auxiliaryTopLeftArea,
               let rightArea = builtInScreen.auxiliaryTopRightArea else { return }
@@ -265,15 +262,37 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         panel.hasShadow = true
         panel.ignoresMouseEvents = true
         panel.collectionBehavior = [.canJoinAllSpaces, .fullScreenAuxiliary]
+        panel.alphaValue = 0
 
         let hostingView = NSHostingView(rootView:
             view.frame(width: previewWidth, height: totalHeight)
         )
         hostingView.frame = NSRect(x: 0, y: 0, width: previewWidth, height: totalHeight)
+        hostingView.wantsLayer = true
         panel.contentView = hostingView
-        panel.orderFrontRegardless()
 
-        notchPanel = panel
+        NotchPreviewCoordinator(
+            presentPopover: { [weak self] in
+                panel.orderFrontRegardless()
+                self?.notchPanel = panel
+                hostingView.layer?.anchorPoint = CGPoint(x: 0.5, y: 1)
+                hostingView.layer?.position = CGPoint(x: previewWidth / 2, y: totalHeight)
+                hostingView.layer?.setAffineTransform(CGAffineTransform(scaleX: 0.97, y: 0.97))
+
+                NSAnimationContext.runAnimationGroup { context in
+                    context.duration = NotchPreviewCoordinator.popoverEntranceDuration
+                    context.timingFunction = CAMediaTimingFunction(controlPoints: 0.16, 1, 0.3, 1)
+                    panel.animator().alphaValue = 1
+                    hostingView.animator().layer?.setAffineTransform(.identity)
+                }
+            },
+            canStartMicrophoneIndicator: { [weak self] in
+                self?.notchPanel === panel
+            },
+            startMicrophoneIndicator: { [weak self] in
+                self?.micCheck.startMonitoring()
+            }
+        ).show()
     }
 
     private func hideNotchPreview() {
